@@ -1,0 +1,9 @@
+site_name: Fast CV App Documentation
+site_url: https://example.com/
+nav: 
+ - Home: index.md
+ - About: about.md
+ - Code Breakdown: codebreakdown.md
+ - Hello World: FirstExample.md
+theme:
+   name: material
