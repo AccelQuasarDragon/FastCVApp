@@ -1,0 +1,78 @@
+frame lifecycle (naive):
+read the frame from source
+analyze frame
+blit buffer
+
+where is the bottleneck?
+reading frame HAS SOME DELAY since i only read 1 frame at a time.
+there is also another delay, which is analyzing frame
+
+the real idea is to read AND analyze the frame BEFORE u even call blit buffer
+
+do the read/analyze combination as fast as possible, then blit buffer at the fps speed
+
+note: this will NOT work on streams.
+
+test #1: 
+read 3 frames per read cycle up until some limit. this is totally fine/easy to do. i already confirmed opencv reads up to 60fps on the speedtesting
+analyze the batch and append to sharedmemory PER BATCH <--- might be a problem, build some logging into this: related question how does CLI tools create an update bar?: use tqdm library maybe? no because it's not multiprocessed, just print out err for now. another problem is that code isn't fast enough and that a buffer builds... this is ok IF you still analyze faster than the fps, but has to analyze at least more than 1 frame per cycle because AT 1 frame per cycle, that is when u lag tf out. hint: now I can multiprocess EVEN MORE and spin up 2 workers to consume this data :P. then the only problem is reading/writing from shared memory, which is my CONFIRMED bottleneck. I know I have shared memory speed of ~21 fps, so how do I really test this?
+warn me if buffer goes to 0
+
+what do I do about the lock thing where I suspect reading shared memory takes a while? nothing?
+I need a test where about shared memory where I access a member of a shared list (I think it's something to keep in mind when I make the 1st buffer test)
+
+you already know what frame to display at what time: time(seconds)*fps = frame <-- frame skipping built already, if it's slow, just read the base image? nah that's lame, think about a more elegant solution (just write faster code :-) )
+
+
+REAL QUESTION: how to deal with shared memory bottleneck of 21 fps?. let's even go 15 fps, what about weaker machines?
+#1: copy the fucking frame to process memory first, then u don't have to lock the shared memory
+-> that's not the solution, the problem is that after reading frame, adding to shared memory in the first place is laggy af
+then i really DO have to read multiple
+hint:
+    target fps is 30
+    sharemem fps is 20, however, I suspect that I can manipulate more than 1 frame and keep ~15 fps. so if i do 3 frames at once, with a buffer of ~150 frames (5 sec), SHOULD be doable. however, I am spooked that making such a large sharedmem might slow down the fps as im trying to speed up.
+
+    i know opencv is fast already, what was the original problem? kivy was lagging tf out, by putting it in a subprocess i was able to dodge GIL and the blocking kivy loop. man, I think trio could have done it? maybe not, because im blitting so fast i'm not sure that there is time in 1 process to do the opencv stuff AND render kivy at 60 fps
+
+
+basic test:
+read 3 frames from source up to buffer of 15 frames
+analyze 3 frames up to buffer of 15 frames
+blit buffer
+
+it's a queue with the indexing trick that u use for set theory to prove countability: the index is already proof. instead of countability, u use the index to determine sequencing
+what do I need to do?
+
+
+basic test:
+read 3 frames from source up to buffer of 15 frames
+    read 3 frames
+    create the buffer of 15 frames
+    TIME THE FPS OF MAKING THE SHAREDMEM
+analyze 3 frames up to buffer of 15 frames
+    analyze 3 frames 
+    create buffer of 15 frames, (not sure if this matters since it's already implicitly rate-limited by the reading of the frames buffer)
+    destroy ref to analyzed frame in shared_metadata_dict after consuming it
+    TIME FPS OF MAKING SHARED MEM
+blit buffer
+    just has to destroy reference to frame in shared_analysis_dict after consuming it
+
+#let's make another dictionary. one thing is that 3 processes are accessing shared_analysis_dict. that's a bit much, but let's keep it...
+one thing to do would be to have 2 dicts, one for just reading files, the other for processed frames
+well shit, i already am using 2 dicts, shared_metadata_dict already holds the read frame, shared_metadata_dict holds the processed frames
+
+
+yea... maybe i shouldn't use a dict? maybe the rotating variable list (not using list structure, but having alist of vars that u can lookup and each var is just 1 frame) is faster...
+
+nope, as per: https://towardsdatascience.com/faster-lookups-in-python-1d7503e9cd38
+When it comes to 10,000,000 items a dictionary lookup can be 585714 times faster than a list lookup.
+
+what if i pre-allocate size? is that a possibility? would only matter in startup tbh, reading and writing to sharedmem is the real issue here.
+how do i even make a sharedmem test? this IS already the sharedmem test, this is already minimal example enough...
+
+what if im accessing memory too much? how many while true loops are there? isn't that wrong?
+also probably need to get out of using sharedmetadata and get another shared dict instance
+    shared processed dict
+what about if i make a cycle:
+read 3 frames > apply to 3 frames > output to blit buffer sharedmem
+then sharedmem continuously consumes resources

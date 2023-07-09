@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "fastcvapp"
+version = "0.1.0"
+description = "Create a computer vision app FAST! Multiprocessing made easy, right out of the box."
+authors = ["ShootingStarDragon"]
+license = "MIT License"
+readme = "README.md"
+repository = "https://github.com/ShootingStarDragon/FastCVApp"
+include = [
+    "LICENSE",
+]
+
+[tool.poetry.dependencies]
+python = "^3.9.0,<3.12" #python = "^3.8,<3.12"
+Kivy = "^2.2.0"
+opencv-python = "^4.6.0.66"
+numpy = "^1.23.4"
+mediapipe = {version = "^0.10.0"}
+blosc2 = "^2.2.2"
+
+[tool.poetry.group.dev.dependencies]
+multiprocess = "^0.70.14"
+pydantic = "^1.10.2"
+dill = "^0.3.6"
+trio = "^0.22.0"
+black = "^22.10.0"
+PySnooper = "^1.1.1"
+pyinstaller = "^5.9.0"
+mkdocs = "^1.4.2"
+mkdocs-material = "^9.1.4"
+tqdm = "^4.65.0"
+ffmpeg-python = "^0.2.0"
+matplotlib = "^3.7.1"
+python-vlc = "^3.0.18122"
+adjusttext = "^0.8"
+squarify = "^0.4.3"
+mplcursors = "^0.5.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+#environment markers as per: https://python-poetry.org/docs/dependency-specification/#using-environment-markers
+#mediapipe-silicon = {version = "^0.9.1",  markers = "sys_platform == 'darwin'"}
+#mediapipe silicon is for m1 chip, if ur install is failing try regular mediapipe
