@@ -1,0 +1,15 @@
+#:import kivy.app kivy.app
+UniqueBox:
+    id: BOX1
+    orientation: 'vertical' 
+    BoxLayout:
+        id: BOX2
+        orientation: 'vertical' 
+        BoxLayout:
+            id: BOX3
+            orientation: 'vertical' 
+            UniqueButton: 
+                id: testbutton
+                text: "testing"
+                on_release: root.TESTING()
+                # on_release: print(root.TESTING)

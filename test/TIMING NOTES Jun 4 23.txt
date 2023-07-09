@@ -1,0 +1,89 @@
+NO MEDIAPIPE
+frame advantage END???? 16996 400 321 2.6016499996185303 1685857617.0883958 total time? 0.3280043601989746 after initial queue time? 0.0 after analyze time? 0.32700324058532715 after write time? 0.001001119613647461
+frame advantage END???? 66196 440 324 2.5046420097351074 1685857617.1854038 total time? 0.44501185417175293 after initial queue time? 0.44400954246520996 after analyze time? 0.0 after write time? 0.0010023117065429688
+resultqueue timing 0.0 6920 1685857617.2823958
+#then get from the analyzed queue and apply blosc2 10
+resultqueue timing 0.0 47084 1685857617.30639
+#then get from the analyzed queue and apply blosc2 10
+frame advantage END???? 47084 400 333 2.201655387878418 1685857617.4883904 total time? 0.7269964218139648 after initial queue time? 0.5449960231781006 after analyze time? 0.18000388145446777 after write time? 0.0019965171813964844
+dictwritetime 0.043998003005981445 6920 1685857617.5083897
+frame advantage END???? 6920 400 333 2.1816561222076416 1685857617.5083897 total time? 0.7349951267242432 after initial queue time? 0.5090012550354004 after analyze time? 0.18099713325500488 after write time? 0.04499673843383789
+
+
+WITH MEDIAPIPE
+frame advantage END???? 3176 160 188 -1.1317417621612549 1685857796.6011035 total time? 1.882572889328003 after initial queue time? 0.5055220127105713 after analyze time? 1.2120537757873535 after write time? 0.16499710083007812
+exiting open_appliedcv 3176
+dictwritetime 0.16699457168579102 31168 1685857796.6731036
+frame advantage END???? 31168 160 191 -1.2037417888641357 1685857796.6731036 total time? 1.9125738143920898 after initial queue time? 0.5095260143280029 after analyze time? 1.236053228378296 after write time? 0.16699457168579102
+frame advantage END???? 35744 120 174 -1.9794106483459473 1685857796.1141057 total time? 2.251404285430908 after initial queue time? 0.5669949054718018 after analyze time? 1.5354101657867432 after write time? 0.14899921417236328
+
+this is strange because example_identityfunc reports this time for individual frames: 
+time??? 0 0.06799960136413574 35744 7797410
+that is NOT enough to be 1.5 seconds...
+total is even 0.7 sec:
+    resultqueue timing 0.7475366592407227
+so blosc compressing is probably the other half 0.42200136184692383
+
+TOTAL TIME:
+2.251404285430908 
+    after initial queue time? 0.5669949054718018 
+        reading bufferlen * # of subprocesses (4) @ 148.0 fps (0.0067)
+            this is the time from FCVA (since it's probably slower since 3 subprocesses are messing with the file: 0.010001897811889648)
+            currently it's 40 frames, this is right
+        FIX: MAKE THIS SMALLER BY GOING BACK TO THE READ SUBPROCESS AGAIN
+            can make the read subprocess work by using blosc packing 1 
+            BLOSC TESTING: (use pack array 1, double the speed and slightly bigger tho by ~200KB)
+                blosc2 pack time 0.011997222900390625 blosc2 array size? 3908484
+                testing blosc2.pack_array2. time compressing?: 0.022042274475097656 sizes? frame VS blosccompressed 6220833 3626685
+                strange, blosc2 pack 1 is the clear winner...
+                    blosc2 pack time 0.010999441146850586 blosc2 array size? 3908484 time to write to shared dict: 0.009996891021728516
+                    testing blosc2.pack_array2. time compressing?: 0.020999670028686523 sizes? frame VS blosccompressed 6220833 3626685 time to write to shared dict: 0.01199960708618164
+    after analyze time? 1.5354101657867432 
+        2 parts: 
+            0.7
+                analyzing with mediapipe: 0.07 sec per frame > so 0.7 for all 10 frames
+            0.4
+            compressing with blosc: 0.033 sec per frame > so 0.4 for all 10 frames
+    after write time? 0.14899921417236328
+        writing to shareddict takes a while
+IN KIVY:
+    read from shareddict: 0.015 sec~
+
+NEW PROJECTED TIME:
+    READ SUBPROCESS MUST BE FASTER THAN 0.03 SEC PER FRAME:
+        read: 0.01
+        blosc pack1: 0.011
+        write to shared mem: ~0.017 (since i'm using blosc pack1)
+        it BARELY MISSES it:
+            0.038
+            HOPE: read speed is back to tested speed since only 1 subprocess messing with it: ~0.0067
+            with all the speedups:
+                fast read: 0.001
+                blosc pack1: 0.01
+                write to sharedmem: 0.009
+                LUCKY: 0.02, still barely making it
+    
+    after initial queue time (reading frames from subprocess): 
+        0.17        
+            now I'm actually only reading 10 frames, compressed with blosc pack1: 
+                10*0.017 = 0.17 time
+    after analyze time? 
+        1.1~1.5 sec
+        2 parts: 
+            0.7 (can't change this)
+                analyzing with mediapipe: 0.07 sec per frame > so 0.7 for all 10 frames
+            0.1 (already went to blosc, it's .4 to .6 but on the faster side)
+            compressing with blosc pack1 for 10 frames
+                10 * 0.01
+    after write time? similarly, write for 10 frames is 0.17
+        writing to shareddict takes a while
+        0.17
+    NEW TIME FOR 10 FRAMES:
+        0.17+0.7+0.1+0.17
+
+IN KIVY (not relevant atm, already solved):
+    read from shareddict: 0.017 sec~
+
+2 things I must do:
+move to blosc1 pack
+reintroduce the reading subprocess
