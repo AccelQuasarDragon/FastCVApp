@@ -16,7 +16,7 @@ poetry.lock
 media
 creativecommonsmedia/Elephants Dream charstart.webm
 #creativecommonsmedia/
-[MMD] Cynical Night Plan YYB式初音ミク[PV] [OICZAZrm8o8].webm
+[MMD] Cynical Night Plan YYB 式初音ミク[PV] [OICZAZrm8o8].webm
 cynicalnightplan.mp4
 examples/build
 examples/dist/MediapipeExample.exe
@@ -162,3 +162,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+FastCVApp/examples/creativecommonsmedia/[MMD] Cynical Night Plan YYB 式初音ミク[PV] [OICZAZrm8o8].webm
