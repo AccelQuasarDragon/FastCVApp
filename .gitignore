@@ -22,7 +22,7 @@ examples/build
 examples/dist/MediapipeExample.exe
 BigBuckBunny.mp4
 Elephants Dream charstart2FULL.webm
-
+[MMD] Cynical Night Plan YYB式初音ミク[PV] [OICZAZrm8o8].webm
 
 # test/
 .DS_Store
@@ -161,4 +161,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-FastCVApp/examples/creativecommonsmedia/[MMD] Cynical Night Plan YYB式初音ミク[PV] [OICZAZrm8o8].webm
+
