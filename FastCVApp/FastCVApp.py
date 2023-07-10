@@ -130,14 +130,47 @@ def open_cvpipeline(*args):
             from pathlib import Path
 
             print("file location?", Path(__file__).absolute())
-            print("cwd???", os.getcwd())
-            if "examples" in os.getcwd().split(os.path.sep):
-                # https://stackoverflow.com/a/51276165
-                # tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_full.task")
-                tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_lite.task")
-            else:
-                # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
-                tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
+            print("cwd???3", os.getcwd())
+            #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
+            # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
+            from sys import platform
+            if platform == "win32":
+                #hope this works for both py file and running from pyinstaller, i'll have to check
+                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                
+            if platform == "darwin":
+                fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
+                #things are different depending if it's in pyinstaller or not
+                import sys
+                if hasattr(sys, "_MEIPASS"):
+		            # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
+                    os.chdir(os.path.dirname(sys.executable))
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                else: #assume it's run from py file, which in that case __file__ is sufficient:
+                    os.chdir(os.path.dirname(__file__))
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+
+
+            fprint("what is getcwd??", os.getcwd())
+            #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
+
+
+            # tasklocation = os.path.dirname(sys.executable)
+            # tasklocation = os.path.join(os.path.dirname(sys.executable),"examples", "creativecommonsmedia", "pose_landmarker_lite.task")
+            # tasklocation = os.path.join(os.getcwd(),"examples", "creativecommonsmedia", "pose_landmarker_full.task")
+
+
+            # if "examples" in os.getcwd().split(os.path.sep):
+            #     # https://stackoverflow.com/a/51276165
+            #     # tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_full.task")
+            #     tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_lite.task")
+            # else:
+            #     # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
+            #     tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
+
             fprint("tasklocation?", tasklocation)
 
             with open(tasklocation, 'rb') as f:
@@ -494,7 +527,7 @@ class FCVA:
         '''
         this is going to spawn subprocesses so make sure the code that calls it has this to stop infinite subprocesses
         if __name__ == "__main__":
-            import multiprocessing #edit use multiprocess since it uses dill which apparently is better than pickle as per: https://github.com/ShootingStarDragon/FastCVApp/issues/263
+            import multiprocessing #edit use multiprocess since it uses dill which apparently is better than pickle
             multiprocessing.freeze_support()
         '''
         FCVA_mpVAR                          = args[0]
