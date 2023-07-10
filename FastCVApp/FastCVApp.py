@@ -170,6 +170,7 @@ def open_cvpipeline(*args):
             # else:
             #     # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
             #     tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
+
             fprint("tasklocation?", tasklocation)
 
             with open(tasklocation, 'rb') as f:
@@ -526,7 +527,7 @@ class FCVA:
         '''
         this is going to spawn subprocesses so make sure the code that calls it has this to stop infinite subprocesses
         if __name__ == "__main__":
-            import multiprocessing #edit use multiprocess since it uses dill which apparently is better than pickle as per: https://github.com/ShootingStarDragon/FastCVApp/issues/263
+            import multiprocessing #edit use multiprocess since it uses dill which apparently is better than pickle
             multiprocessing.freeze_support()
         '''
         FCVA_mpVAR                          = args[0]
@@ -691,11 +692,13 @@ class FCVA:
                 # https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy
                 #if you release on the slider OR the slider value was moved (just checking values doesnt account for leaving it on the same frame):
                 fprint("what are values?", self.FCVAWidget_shared_metadata_dict["oldsliderpos"], self.ids['vidsliderID'].value)
-                if self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
-                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
-                    self.CV_on()
+                #button takes precedence:
                 if self.ids['StartScreenButtonID'].collide_point(*touch.pos):
                     self.toggleCV()
+                elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
+                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
+                    self.CV_on()
+                
 
             def updateSliderData(self, *args):
                 '''
@@ -787,12 +790,18 @@ class FCVA:
                     self.FCVAWidget_shared_metadata_dict["seek_req_val"] = self.ids['vidsliderID'].value
                     fprint("sliderval ok?")
                     fprint(f"#need a {self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']} second delay somehow")
+                    #cancel first if it exists before scheduling so that only one fires
+                    if hasattr(self, "blitschedule"):
+                        self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     self.FCVAWidget_shared_metadata_dict.pop("pausetime")
                     fprint(f"BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC SEEK")
                 else:
                     self.FCVAWidget_shared_metadata_dict["starttime"] = time.time() + self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']
                     fprint("set basictime")
+                    #cancel first if it exists before scheduling so that only one fires
+                    if hasattr(self, "blitschedule"):
+                        self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     fprint("BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC REGULAR")
 

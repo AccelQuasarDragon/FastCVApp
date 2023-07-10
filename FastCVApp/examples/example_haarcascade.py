@@ -65,7 +65,7 @@ def cascade_this(*args):
         while len(inputdeque) > 0:
             image = inputdeque.popleft()
             
-            #yikes haarcascades are slow..., notes here: https://github.com/ShootingStarDragon/FastCVApp/issues/302
+            #yikes haarcascades are slow...
             #plan is to resize  do the mediapipestrat where you apply haarcascade on a smaller image then rescale to original
             gray = cv2.resize(image,w_size)
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

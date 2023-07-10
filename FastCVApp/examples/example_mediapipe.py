@@ -128,6 +128,7 @@ if __name__ == "__main__":
     app = FastCVApp.FCVA()
     app.appliedcv = apply_mediapipe_func
 
+    # # / and \ works on windows, only / on mac tho 
     app.source = sourcelocation
     app.fps = 1 / 30
     app.title = "Mediapipe example by Pengindoramu"

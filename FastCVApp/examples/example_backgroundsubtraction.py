@@ -53,9 +53,6 @@ def open_backsub(*args):
 if __name__ == "__main__":
     import multiprocessing 
     multiprocessing.freeze_support()
-    # import time
-    # print("STOPPED TIME")
-    # time.sleep(200)
     import FastCVApp
     app = FastCVApp.FCVA()
     app.appliedcv = open_backsub
