@@ -692,11 +692,13 @@ class FCVA:
                 # https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy
                 #if you release on the slider OR the slider value was moved (just checking values doesnt account for leaving it on the same frame):
                 fprint("what are values?", self.FCVAWidget_shared_metadata_dict["oldsliderpos"], self.ids['vidsliderID'].value)
-                if self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
-                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
-                    self.CV_on()
+                #button takes precedence:
                 if self.ids['StartScreenButtonID'].collide_point(*touch.pos):
                     self.toggleCV()
+                elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
+                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
+                    self.CV_on()
+                
 
             def updateSliderData(self, *args):
                 '''
