@@ -788,12 +788,18 @@ class FCVA:
                     self.FCVAWidget_shared_metadata_dict["seek_req_val"] = self.ids['vidsliderID'].value
                     fprint("sliderval ok?")
                     fprint(f"#need a {self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']} second delay somehow")
+                    #cancel first if it exists before scheduling so that only one fires
+                    if hasattr(self, "blitschedule"):
+                        self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     self.FCVAWidget_shared_metadata_dict.pop("pausetime")
                     fprint(f"BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC SEEK")
                 else:
                     self.FCVAWidget_shared_metadata_dict["starttime"] = time.time() + self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']
                     fprint("set basictime")
+                    #cancel first if it exists before scheduling so that only one fires
+                    if hasattr(self, "blitschedule"):
+                        self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     fprint("BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC REGULAR")
 
