@@ -19,7 +19,9 @@ else:
         sys.path.append("../FastCVApp")  # when running from main folder
 
 from FCVAutils import FCVA_update_resources
-sourcelocation = "examples/creativecommonsmedia/Elephants Dream charstart2FULL.webm"
+# / and \ works on windows, only / on mac tho. the solution is to just os.path.join and os.sep for the separator
+sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL.webm")
+
 FCVA_update_resources(sourcelocationVAR=sourcelocation)
 
 import cv2
@@ -57,7 +59,6 @@ if __name__ == "__main__":
     app = FastCVApp.FCVA()
     app.appliedcv = open_backsub
 
-    # / and \ works on windows, only / on mac tho
     app.source = sourcelocation
     app.fps = 1 / 30
     app.title = "Background subtraction example by Pengindoramu"

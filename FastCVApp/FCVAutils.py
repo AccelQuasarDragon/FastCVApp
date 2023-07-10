@@ -1,5 +1,7 @@
 import os
 import time
+import sys
+import shutil
 
 def fprint(*args):
 	print(os.getpid(), time.time(), *args, flush = True)
@@ -11,7 +13,6 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 	ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
 	https://stackoverflow.com/a/50564083
 	'''
-	import sys
 	if hasattr(sys, "_MEIPASS"):
 		# if file is frozen by pyinstaller add the MEIPASS folder to path:
 		sys.path.append(sys._MEIPASS) 
@@ -38,7 +39,6 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 			print("what is tempsource?", tempsource, not os.path.isfile(actualsource), "actual", actualsource)
 			if not os.path.isfile(actualsource):
 				#copy to current directory:
-				import shutil
 				#again filpaths are a pain, mac needs the initial slash: /var/temp NOT var/temp
 				if platform == "win32":
 					tempsourcefolder = os.path.join(*tempsource.split(os.sep)[:-1]) 
@@ -46,8 +46,8 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 					tempsourcefolder = os.path.join(os.sep, *tempsource.split(os.sep)[:-1]) 
 				# actualsourcefolder = os.path.join(*actualsource.split(os.sep)[:-1]) 
 				# rootguyvar = os.path.dirname(__file__)
+				fprint("what is this folder?", sourcelocationVAR, "===", *sourcelocationVAR.split(os.sep)[:-1], "===", tempsourcefolder)
 				actualsourcefolder = os.path.join(*sourcelocationVAR.split(os.sep)[:-1]) 
-				fprint("what is this folder?", actualsourcefolder)
 				shutil.copytree(tempsourcefolder, actualsourcefolder, dirs_exist_ok = True)
 				# existsornot = os.path.isdir(actualsourcefolder)
 				# print("copyanything", tempsourcefolder, actualsourcefolder, existsornot)
