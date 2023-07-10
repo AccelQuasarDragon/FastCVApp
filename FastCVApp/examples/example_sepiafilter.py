@@ -19,7 +19,7 @@ else:
         sys.path.append("../FastCVApp")  # when running from main folder
 
 from FCVAutils import FCVA_update_resources
-sourcelocation = "examples/creativecommonsmedia/Elephants Dream charstart2FULL.webm"
+sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL.webm")
 FCVA_update_resources(sourcelocationVAR=sourcelocation)
 
 
