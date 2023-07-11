@@ -20,7 +20,7 @@ else:
 
 from FCVAutils import FCVA_update_resources
 # / and \ works on windows, only / on mac tho. the solution is to just os.path.join and os.sep for the separator
-sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL.webm")
+sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
 
 FCVA_update_resources(sourcelocationVAR=sourcelocation)
 
