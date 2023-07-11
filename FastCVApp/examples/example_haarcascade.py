@@ -19,8 +19,7 @@ else:
         sys.path.append("../FastCVApp")  # when running from main folder
 
 from FCVAutils import FCVA_update_resources
-# sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL.webm") #full is not available on github
-sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2.webm")
+sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
 FCVA_update_resources(sourcelocationVAR=sourcelocation)
 import cv2
 from collections import deque
