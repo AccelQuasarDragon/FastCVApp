@@ -360,42 +360,6 @@ class FCVA:
                 if platform == "linux" or platform == "linux2":
                     # linux
                     pass
-                elif platform == "darwin_old":
-                    # OS X, need to change filepath so pyinstaller exe will work
-                    mac_path = (
-                        os.path.sep.join(sys.argv[0].split(os.path.sep)[:-1]) + os.path.sep
-                    )
-                    print("mac option", mac_path)
-                    print("what is self source then?", self.source)
-                    # vanity code so example works from main file or from examples folder
-                    if "examples" in mac_path:
-                        mac_source = self.source
-                    else:
-                        mac_source = mac_path + self.source
-
-                    # check if file exists in dir, if not then check tmp folder, if nothing, raise error:
-                    # reference: https://stackoverflow.com/questions/54837659/python-pyinstaller-on-mac-current-directory-problem
-                    if os.path.isfile(mac_source):
-                        print("file exists in dir ", mac_source)
-                        self.source = mac_source
-                    elif not os.path.isfile(mac_source):
-                        print(
-                            "File not in .dmg directory, location failed isfile check, checking tmp dir: ",
-                            mac_source,
-                        )
-
-                    # checking tempfolder
-                    if hasattr(sys, "_MEIPASS"):
-                        # if file is frozen by pyinstaller add the MEIPASS folder to path:
-                        sys.path.append(sys._MEIPASS)
-                        tempsource = sys._MEIPASS + os.sep + self.source
-
-                        if os.path.isfile(tempsource):
-                            self.source = tempsource
-                        elif not os.path.isfile(tempsource):
-                            raise Exception(
-                                "Source failed isfile check: " + str(tempsource)
-                            )
 
                 elif platform == "win32" or platform == "darwin":
                     # Windows...
