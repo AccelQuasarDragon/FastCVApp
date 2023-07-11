@@ -19,7 +19,7 @@ else:
         sys.path.append("../FastCVApp")  # when running from main folder
 
 from FCVAutils import FCVA_update_resources
-sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2FULL.webm"
+sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL.webm")
 FCVA_update_resources(sourcelocationVAR=sourcelocation)
 import cv2
 from collections import deque
@@ -65,7 +65,7 @@ def cascade_this(*args):
         while len(inputdeque) > 0:
             image = inputdeque.popleft()
             
-            #yikes haarcascades are slow..., notes here: https://github.com/ShootingStarDragon/FastCVApp/issues/302
+            #yikes haarcascades are slow...
             #plan is to resize  do the mediapipestrat where you apply haarcascade on a smaller image then rescale to original
             gray = cv2.resize(image,w_size)
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

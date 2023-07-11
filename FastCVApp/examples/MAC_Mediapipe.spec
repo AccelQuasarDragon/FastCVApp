@@ -3,17 +3,20 @@
 
 block_cipher = None
 
+basedir = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep)[:-1]) + os.path.sep
+print("file location?", basedir)
+
 def get_mediapipe_path():
     import mediapipe
     mediapipe_path = mediapipe.__path__[0]
     return mediapipe_path
 
 a = Analysis(
-    ['examples/example_mediapipe.py'],
+    ['example_mediapipe.py'],
     pathex=[],
     binaries=[],
-    datas=[('FastCVApp.py', '.'), ('examples//creativecommonsmedia//','examples//creativecommonsmedia')],
-    hiddenimports=[],
+    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

@@ -3,13 +3,15 @@
 
 block_cipher = None
 
+basedir = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep)[:-1]) + os.path.sep
+print("file location?", basedir)
 
 a = Analysis(
-    ['examples//example_backgroundsubtraction.py'],
+    ['example_backgroundsubtraction.py'],
     pathex=[],
     binaries=[],
-    datas=[('FastCVApp.py', '.'), ('examples//creativecommonsmedia//','examples//creativecommonsmedia')],
-    hiddenimports=[],
+    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -20,7 +22,7 @@ a = Analysis(
     noarchive=False,
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
+#https://stackoverflow.com/questions/70327138/163-info-upx-is-not-available-selenium-pyinstaller-one-file-exe
 exe = EXE(
     pyz,
     a.scripts,
@@ -35,7 +37,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

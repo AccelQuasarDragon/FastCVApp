@@ -19,7 +19,7 @@ else:
         sys.path.append("../FastCVApp")  # when running from main folder
 
 from FCVAutils import FCVA_update_resources
-sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2FULL.webm"
+sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL.webm")
 FCVA_update_resources(sourcelocationVAR=sourcelocation)
 
 import cv2
@@ -61,5 +61,5 @@ if __name__ == "__main__":
     # app.source = "examples/creativecommonsmedia/Elephants Dream charstart2.webm"
     # app.source = "examples/creativecommonsmedia/JoJo-s Bizarre Adventure - S05E25 - DUAL 1080p WEB H.264 -NanDesuKa (NF) (1).1080.mp4"
     app.fps = 1 / 30
-    app.title = "Sepia filter example by Pengindoramu"
+    app.title = "Identity example by Pengindoramu"
     app.run()

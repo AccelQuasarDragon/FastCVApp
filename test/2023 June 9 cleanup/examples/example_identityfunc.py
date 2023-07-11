@@ -155,7 +155,6 @@ def draw_landmarks_on_image(annotated_image, detection_result):
 #             #references: 
 #             # https://github.com/googlesamples/mediapipe/blob/main/examples/pose_landmarker/python/%5BMediaPipe_Python_Tasks%5D_Pose_Landmarker.ipynb
 #             # https://developers.google.com/mediapipe/solutions/vision/pose_landmarker/python#video_1
-#             # https://github.com/ShootingStarDragon/FastCVApp/blob/windows/%23119/FastCVApp/examples/creativecommonsmedia/mediapipetest.py
 #             print("update worked?", flush = True)
 #             # 'I:\CODING\FastCVApp\FastCVApp\examples\creativecommonsmedia\pose_landmarker_full.task'
 #             #set the cwd to reset it maybe?

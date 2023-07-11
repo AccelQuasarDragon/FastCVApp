@@ -3,13 +3,15 @@
 
 block_cipher = None
 
+basedir = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep)[:-1]) + os.path.sep
+
 import cv2
 a = Analysis(
-    ['examples/example_haarcascade.py'],
+    ['example_haarcascade.py'],
     pathex=[],
     binaries=[],
-    datas=[('FastCVApp.py', '.'), ('examples//creativecommonsmedia//','examples//creativecommonsmedia'), (cv2.data.haarcascades+'haarcascade_frontalface_default.xml', ".")],
-    hiddenimports=['kivy'],
+    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (cv2.data.haarcascades+'haarcascade_frontalface_default.xml', "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

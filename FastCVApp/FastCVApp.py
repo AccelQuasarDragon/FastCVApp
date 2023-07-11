@@ -130,14 +130,47 @@ def open_cvpipeline(*args):
             from pathlib import Path
 
             print("file location?", Path(__file__).absolute())
-            print("cwd???", os.getcwd())
-            if "examples" in os.getcwd().split(os.path.sep):
-                # https://stackoverflow.com/a/51276165
-                # tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_full.task")
-                tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_lite.task")
-            else:
-                # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
-                tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
+            print("cwd???3", os.getcwd())
+            #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
+            # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
+            from sys import platform
+            if platform == "win32":
+                #hope this works for both py file and running from pyinstaller, i'll have to check
+                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                
+            if platform == "darwin":
+                fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
+                #things are different depending if it's in pyinstaller or not
+                import sys
+                if hasattr(sys, "_MEIPASS"):
+		            # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
+                    os.chdir(os.path.dirname(sys.executable))
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                else: #assume it's run from py file, which in that case __file__ is sufficient:
+                    os.chdir(os.path.dirname(__file__))
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+
+
+            fprint("what is getcwd??", os.getcwd())
+            #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
+
+
+            # tasklocation = os.path.dirname(sys.executable)
+            # tasklocation = os.path.join(os.path.dirname(sys.executable),"examples", "creativecommonsmedia", "pose_landmarker_lite.task")
+            # tasklocation = os.path.join(os.getcwd(),"examples", "creativecommonsmedia", "pose_landmarker_full.task")
+
+
+            # if "examples" in os.getcwd().split(os.path.sep):
+            #     # https://stackoverflow.com/a/51276165
+            #     # tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_full.task")
+            #     tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_lite.task")
+            # else:
+            #     # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
+            #     tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
+
             fprint("tasklocation?", tasklocation)
 
             with open(tasklocation, 'rb') as f:
@@ -327,42 +360,6 @@ class FCVA:
                 if platform == "linux" or platform == "linux2":
                     # linux
                     pass
-                elif platform == "darwin_old":
-                    # OS X, need to change filepath so pyinstaller exe will work
-                    mac_path = (
-                        os.path.sep.join(sys.argv[0].split(os.path.sep)[:-1]) + os.path.sep
-                    )
-                    print("mac option", mac_path)
-                    print("what is self source then?", self.source)
-                    # vanity code so example works from main file or from examples folder
-                    if "examples" in mac_path:
-                        mac_source = self.source
-                    else:
-                        mac_source = mac_path + self.source
-
-                    # check if file exists in dir, if not then check tmp folder, if nothing, raise error:
-                    # reference: https://stackoverflow.com/questions/54837659/python-pyinstaller-on-mac-current-directory-problem
-                    if os.path.isfile(mac_source):
-                        print("file exists in dir ", mac_source)
-                        self.source = mac_source
-                    elif not os.path.isfile(mac_source):
-                        print(
-                            "File not in .dmg directory, location failed isfile check, checking tmp dir: ",
-                            mac_source,
-                        )
-
-                    # checking tempfolder
-                    if hasattr(sys, "_MEIPASS"):
-                        # if file is frozen by pyinstaller add the MEIPASS folder to path:
-                        sys.path.append(sys._MEIPASS)
-                        tempsource = sys._MEIPASS + os.sep + self.source
-
-                        if os.path.isfile(tempsource):
-                            self.source = tempsource
-                        elif not os.path.isfile(tempsource):
-                            raise Exception(
-                                "Source failed isfile check: " + str(tempsource)
-                            )
 
                 elif platform == "win32" or platform == "darwin":
                     # Windows...
@@ -494,7 +491,7 @@ class FCVA:
         '''
         this is going to spawn subprocesses so make sure the code that calls it has this to stop infinite subprocesses
         if __name__ == "__main__":
-            import multiprocessing #edit use multiprocess since it uses dill which apparently is better than pickle as per: https://github.com/ShootingStarDragon/FastCVApp/issues/263
+            import multiprocessing #edit use multiprocess since it uses dill which apparently is better than pickle
             multiprocessing.freeze_support()
         '''
         FCVA_mpVAR                          = args[0]
@@ -659,11 +656,13 @@ class FCVA:
                 # https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy
                 #if you release on the slider OR the slider value was moved (just checking values doesnt account for leaving it on the same frame):
                 fprint("what are values?", self.FCVAWidget_shared_metadata_dict["oldsliderpos"], self.ids['vidsliderID'].value)
-                if self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
-                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
-                    self.CV_on()
+                #button takes precedence:
                 if self.ids['StartScreenButtonID'].collide_point(*touch.pos):
                     self.toggleCV()
+                elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
+                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
+                    self.CV_on()
+                
 
             def updateSliderData(self, *args):
                 '''
@@ -755,12 +754,18 @@ class FCVA:
                     self.FCVAWidget_shared_metadata_dict["seek_req_val"] = self.ids['vidsliderID'].value
                     fprint("sliderval ok?")
                     fprint(f"#need a {self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']} second delay somehow")
+                    #cancel first if it exists before scheduling so that only one fires
+                    if hasattr(self, "blitschedule"):
+                        self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     self.FCVAWidget_shared_metadata_dict.pop("pausetime")
                     fprint(f"BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC SEEK")
                 else:
                     self.FCVAWidget_shared_metadata_dict["starttime"] = time.time() + self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']
                     fprint("set basictime")
+                    #cancel first if it exists before scheduling so that only one fires
+                    if hasattr(self, "blitschedule"):
+                        self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     fprint("BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC REGULAR")
 
