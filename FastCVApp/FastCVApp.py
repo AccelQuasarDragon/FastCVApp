@@ -823,6 +823,7 @@ class FCVA:
                             frame = blosc2.decompress(frame)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(1080, 1920, 3)
                             frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
+                            # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 4)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(480, 640, 3)
                             frame = cv2.flip(frame, 0)
                             buf = frame.tobytes()
@@ -852,6 +853,7 @@ class FCVA:
                                 #     self.colorfmtval = "bgr"
 
                                 self.colorfmtval = "bgr"
+                                # self.colorfmtval = "bgra"
 
                                 # texture documentation: https://github.com/kivy/kivy/blob/master/kivy/graphics/texture.pyx
                                 # blit to texture
