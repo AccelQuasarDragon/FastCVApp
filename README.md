@@ -12,6 +12,16 @@ Fast CV App is built on Kivy for the sole purpose of accessing OpenGL methods in
 
 PyInstaller is used to create the Windows and MacOS (M1 chip) files, and associated .spec files are left in for examination. 
 
+#Windows Example:
+
+https://github.com/AccelQuasarDragon/FastCVApp/assets/138998466/372cb252-0a6f-41eb-a05f-ac4302cb1f6b
+
+#Mac M1 Example:
+
+https://github.com/AccelQuasarDragon/FastCVApp/assets/138998466/eab19c82-a179-4346-9c6a-d6d6e3d1e3bf
+
+
+
 # Initial setup
 # Running examples:
 
