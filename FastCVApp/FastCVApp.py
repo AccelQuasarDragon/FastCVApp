@@ -136,8 +136,8 @@ def open_cvpipeline(*args):
             from sys import platform
             if platform == "win32":
                 #hope this works for both py file and running from pyinstaller, i'll have to check
-                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
                 
             if platform == "darwin":
                 fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
@@ -146,12 +146,12 @@ def open_cvpipeline(*args):
                 if hasattr(sys, "_MEIPASS"):
 		            # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
                     os.chdir(os.path.dirname(sys.executable))
-                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
                 else: #assume it's run from py file, which in that case __file__ is sufficient:
                     os.chdir(os.path.dirname(__file__))
-                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
 
             fprint("what is getcwd??", os.getcwd())
@@ -436,7 +436,8 @@ class FCVA:
                 if hasattr(self, "cvpartitions"):
                     cvpartitions = self.cvpartitions
                 else:
-                    cvpartitions = 3
+                    # cvpartitions = 3
+                    cvpartitions = 4
                 #init shared dicts:
 
                 #nested shared obj works:
@@ -776,7 +777,6 @@ class FCVA:
                     self.blit_imagebuf.cancel()
                     fprint("CANCELED BLITTING???")
                 fprint("set pausetime, text is", self.ids['StartScreenButtonID'].text)
-
 
             def toggleCV(self, *args):
                 widgettext = self.ids['StartScreenButtonID'].text
