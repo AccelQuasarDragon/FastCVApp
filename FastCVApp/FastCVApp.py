@@ -323,7 +323,8 @@ def open_cvpipeline(*args):
                         # fprint("ret and internal_framecount in framelist", ret, internal_framecount, framelist, ret and (internal_framecount in framelist))
                         if ret and (internal_framecount in framelist):
                             # i might not be picking up a pose because the frame is being read upside down, flip it first before analyzing with mediapipe
-                            framedata = cv2.resize(framedata, (1280, 720))
+                            # framedata = cv2.resize(framedata, (1280, 720))
+                            framedata = cv2.resize(framedata, (1920, 1080))
                             # framedata = cv2.resize(framedata, (640, 480))
                             # framedata = cv2.flip(framedata, 0) 
                             # framedata = cv2.cvtColor(framedata, cv2.COLOR_RGB2BGR)
@@ -821,8 +822,8 @@ class FCVA:
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:
                             frame = blosc2.decompress(frame)
-                            # frame = np.frombuffer(frame, np.uint8).copy().reshape(1080, 1920, 3)
-                            frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
+                            frame = np.frombuffer(frame, np.uint8).copy().reshape(1080, 1920, 3)
+                            # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 4)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(480, 640, 3)
                             frame = cv2.flip(frame, 0)
