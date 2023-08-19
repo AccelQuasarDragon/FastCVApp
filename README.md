@@ -7,6 +7,7 @@ Here you will learn know how to sidestep bottlenecks using multiprocessing and s
 
 # See for yourself:
 
+https://youtu.be/YnhHaKEx7pY
 
 Fast CV App is built on Kivy for the sole purpose of accessing OpenGL methods in Python without having to learn the ins and outs of OpenGL. This makes cross platform a lot more achievable and the same techniques you can learn here are applicable to any framework as long as you have access to a canvas and can update the canvas whenever you want. 
 

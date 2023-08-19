@@ -136,8 +136,8 @@ def open_cvpipeline(*args):
             from sys import platform
             if platform == "win32":
                 #hope this works for both py file and running from pyinstaller, i'll have to check
-                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
                 
             if platform == "darwin":
                 fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
@@ -146,12 +146,12 @@ def open_cvpipeline(*args):
                 if hasattr(sys, "_MEIPASS"):
 		            # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
                     os.chdir(os.path.dirname(sys.executable))
-                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
                 else: #assume it's run from py file, which in that case __file__ is sufficient:
                     os.chdir(os.path.dirname(__file__))
-                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
 
             fprint("what is getcwd??", os.getcwd())
@@ -323,7 +323,8 @@ def open_cvpipeline(*args):
                         # fprint("ret and internal_framecount in framelist", ret, internal_framecount, framelist, ret and (internal_framecount in framelist))
                         if ret and (internal_framecount in framelist):
                             # i might not be picking up a pose because the frame is being read upside down, flip it first before analyzing with mediapipe
-                            framedata = cv2.resize(framedata, (1280, 720))
+                            # framedata = cv2.resize(framedata, (1280, 720))
+                            framedata = cv2.resize(framedata, (1920, 1080))
                             # framedata = cv2.resize(framedata, (640, 480))
                             # framedata = cv2.flip(framedata, 0) 
                             # framedata = cv2.cvtColor(framedata, cv2.COLOR_RGB2BGR)
@@ -436,7 +437,8 @@ class FCVA:
                 if hasattr(self, "cvpartitions"):
                     cvpartitions = self.cvpartitions
                 else:
-                    cvpartitions = 3
+                    # cvpartitions = 3
+                    cvpartitions = 4
                 #init shared dicts:
 
                 #nested shared obj works:
@@ -777,7 +779,6 @@ class FCVA:
                     fprint("CANCELED BLITTING???")
                 fprint("set pausetime, text is", self.ids['StartScreenButtonID'].text)
 
-
             def toggleCV(self, *args):
                 widgettext = self.ids['StartScreenButtonID'].text
                 # fprint("widgettext is?", widgettext)
@@ -821,8 +822,9 @@ class FCVA:
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:
                             frame = blosc2.decompress(frame)
-                            # frame = np.frombuffer(frame, np.uint8).copy().reshape(1080, 1920, 3)
-                            frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
+                            frame = np.frombuffer(frame, np.uint8).copy().reshape(1080, 1920, 3)
+                            # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
+                            # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 4)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(480, 640, 3)
                             frame = cv2.flip(frame, 0)
                             buf = frame.tobytes()
@@ -852,6 +854,7 @@ class FCVA:
                                 #     self.colorfmtval = "bgr"
 
                                 self.colorfmtval = "bgr"
+                                # self.colorfmtval = "bgra"
 
                                 # texture documentation: https://github.com/kivy/kivy/blob/master/kivy/graphics/texture.pyx
                                 # blit to texture
