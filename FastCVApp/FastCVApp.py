@@ -3,7 +3,7 @@ import cv2
 import time
 import os, sys
 import numpy as np
-from FCVAutils import fprint
+from FastCVApp.FCVAutils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
@@ -352,10 +352,11 @@ class FCVA:
     def run(self):
         try:
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "FastCVApp":
+            if __name__ == "FastCVApp.FastCVApp":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
+                fprint("imported FCVA_mp!", FCVA_mp)
                 # reference: https://stackoverflow.com/questions/8220108/how-do-i-check-the-operating-system-in-python
                 from sys import platform
                 if platform == "linux" or platform == "linux2":
@@ -449,6 +450,10 @@ class FCVA:
 
                 #you CAN target class methods using multiprocessing process 
                 #https://stackoverflow.com/questions/45311398/python-multiprocessing-class-methods
+                # print("??? in FCVA", self, dir(self), self.__dict__)
+                # self.fps = 1/30
+                # self.appliedcv = None
+
                 kivy_subprocess = FCVA_mp.Process(
                     target=self.open_kivy,
                     args=(
@@ -575,11 +580,11 @@ class FCVA:
                 #YOU NEED TO MAKE SURE THE CODE THAT CALLS THIS HAS ALREADY MULTIPROCESSING FREEZE SUPPORT AND IS UNDER SOME GUARD LIKE IF NAME == MAIN
                 fprint("what is __name__?", __name__, "this should be bufferlen:", self.bufferlen)
                 #in my example I already import multiprocessing. so try if it exists first before I import it twice...
-                
+                # fprint("what is __name__?", __name__)
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if __name__ == "FastCVApp":
+                    if __name__ == "FastCVApp.FastCVApp":
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
                         print("FCVA FCVAWidget __init__ detected no multiprocessing, importing as such", flush=True)
@@ -608,6 +613,7 @@ class FCVA:
                 # Clock.schedule_once(self.updatefont, 0)
                 self.is_cv_loaded = Clock.schedule_interval(self.updatefont_subprocesscheck, 1)
 
+                # print("whatis appliedcv?", self.appliedcv, self, dir(self), self.__dict__)
                 initdatalist = FCVA.FCVAWidget_SubprocessInit(
                     FCVA_mp,
                     shared_mem_manager,
@@ -926,12 +932,12 @@ class FCVA:
                     print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
         
         #change the classdef so that stuff becomes available. This REALLY cannot be called more than once...
-        FCVAWidget.cvpartitions = args[0]
-        FCVAWidget.bufferlen = args[1]
-        FCVAWidget.source = args[2]
-        FCVAWidget.fps = args[3]
-        FCVAWidget.appliedcv = args[4]
-        FCVAWidget.bufferwaitVAR2 = args[5]
+        FCVAWidget.cvpartitions     = args[0]
+        FCVAWidget.bufferlen        = args[1]
+        FCVAWidget.source           = args[2]
+        FCVAWidget.fps              = args[3]
+        FCVAWidget.appliedcv        = args[4]
+        FCVAWidget.bufferwaitVAR2   = args[5]
 
         # BACKSLASHES NOT COMPATIBLE WITH FSTRINGS: https://stackoverflow.com/questions/66173070/how-to-put-backslash-escape-sequence-into-f-string SOLUTION IS TO DO THINGS IN PYTHON SIDE, (set id.text values, etc)
         FCVAWidget_KV = f"""

@@ -10,7 +10,7 @@ from collections import deque
 # # / and \ works on windows, only / on mac tho 
 # sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2.webm"
 # sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
-sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+sourcelocation = os.path.join("FastCVApp", "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
 # sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
 # sourcelocation = "NDA"
 
@@ -31,7 +31,7 @@ else:
         # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
         sys.path.append("../FastCVApp")  # when running from main folder
 
-from FCVAutils import FCVA_update_resources
+from FastCVApp.FCVAutils import FCVA_update_resources
 #udpate paths here
 FCVA_update_resources(sourcelocationVAR=sourcelocation) #this has the sys.path.append(sys._MEIPASS)
 
@@ -125,9 +125,10 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     print("location of file if name main?", __file__, os.getpid() )
     # print("paths??", sys.path)
-    import FastCVApp
+    from FastCVApp import FastCVApp 
     app = FastCVApp.FCVA()
     app.appliedcv = apply_mediapipe_func
+    print("what is app?", app, app.appliedcv)
 
     # # / and \ works on windows, only / on mac tho 
     app.source = sourcelocation
