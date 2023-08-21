@@ -136,8 +136,8 @@ def open_cvpipeline(*args):
             # https://stackoverflow.com/a/50098973
             from pathlib import Path
 
-            print("file location?", Path(__file__).absolute())
-            print("cwd???3", os.getcwd())
+            fprint("file location?", Path(__file__).absolute())
+            fprint("cwd???3", os.getcwd())
             #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
             # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
             from sys import platform
@@ -161,7 +161,7 @@ def open_cvpipeline(*args):
                     tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
 
-            fprint("what is getcwd??", os.getcwd())
+            # fprint("what is getcwd??", os.getcwd())
             #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
 
 

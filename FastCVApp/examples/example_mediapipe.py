@@ -7,28 +7,37 @@ from mediapipe.framework.formats import landmark_pb2
 import time
 from collections import deque
 
-
-
-#u gotta run this from cmd, run python file/F5(debug) on vscode fails., u have to PRESS THE BUTTON 
+#u gotta run this from cmd, run python file/F5(debug) on vscode fails., u have to PRESS THE BUTTON which says "run python file"
 
 if hasattr(sys, "_MEIPASS"):
     pass
 else:
-    # if "examples" in os.getcwd().split(os.path.sep)[-1]:
-    #     sys.path.append(
-    #         ".."
-    #     )  # when running from examples folder, append the upper level
-    # else:
-    #     # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
-    #     sys.path.append("../FastCVApp")  
     # if you're making your own app, you don't need this if-else block. This is just vanity code so this file can be run from main FastCVApp folder or from the examples subfolder.
     # this example is importing from a higher level package if running from cmd: https://stackoverflow.com/a/41575089
 
+    #fix paths
+    if "examples" in os.getcwd().split(os.path.sep)[-1]:
+        sys.path.append(
+            ".."
+        )  # when running from examples folder, append the upper level
+    else:
+        # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
+        sys.path.append("../FastCVApp")  
+    #now for each case, import things properly:
+    #case #1: from fastcvapp
+    #case #2: from fastcvapp/fastcvapp
+    #case #3: from fastcvapp/fastcvapp/examples
+    #case #4: from pyinstaller MEIPASS
+    # I know that I wrote for: #2,#3,#4 PROPERLY, so just append for case #1
+
+
+
+
+
     # add the right path depending on if you're running from examples or from main folder:
     # print("is file correct location?", __file__ )
-    
-    print("check this out", os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower(), os.path.join("fastcvapp", "fastcvapp", "examples"), os.getcwd())
-    print("checking these paths case insensitively: ",  os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
+    # print("check this out", os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower(), os.path.join("fastcvapp", "fastcvapp", "examples"), os.getcwd())
+    print("PID:",os.getpid(),"checking these paths case insensitively: ", os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
     #The windows file system is case-insensitive. https://stackoverflow.com/questions/21173979/how-do-i-get-path-to-python-script-with-proper-case
     if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
         sys.path.append(
@@ -53,24 +62,6 @@ else:
         # sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
         # sourcelocation = "NDA"
 
-# https://stackoverflow.com/questions/6416424/why-does-my-python-not-add-current-working-directory-to-the-path
-
-# SOLUTION
-# if you are not in examples or fcva/fcva folder, 
-# append the top level folder of  to the sys.path
-
-# It is the script's directory that is added
-
-# import os
-# sys.path.append(
-#             ".."
-#         )
-# sys.path.append(os.getcwd())
-# print(sys.path)
-# print(os.getcwd())
-# import FastCVApp
-
-# from FCVAutils import FCVA_update_resources
 #udpate paths here
 FCVA_update_resources(sourcelocationVAR=sourcelocation) #this has the sys.path.append(sys._MEIPASS)
 
@@ -173,12 +164,10 @@ if __name__ == "__main__":
     else:
         print("running from outside the fcva examples folder!")
         from FastCVApp import FastCVApp 
-
     
     app = FastCVApp.FCVA()
     app.appliedcv = apply_mediapipe_func
-    print("what is app?", app, app.appliedcv)
-
+    
     # # / and \ works on windows, only / on mac tho 
     app.source = sourcelocation
     app.fps = 1 / 30
