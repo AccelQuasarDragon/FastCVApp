@@ -11,7 +11,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9.0,<3.12" #python = "^3.8,<3.12"
+python = "^3.9.0,<3.12" #python = "^3.8,<3.12" ("^3.9.0,<3.12" is required b/c pyinstaller...)
 Kivy = "^2.2.0"
 opencv-python = "^4.6.0.66"
 numpy = "^1.23.4"
