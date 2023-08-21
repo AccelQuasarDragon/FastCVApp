@@ -23,13 +23,19 @@ else:
     # this example is importing from a higher level package if running from cmd: https://stackoverflow.com/a/41575089
 
     # add the right path depending on if you're running from examples or from main folder:
-    if "examples" in os.getcwd().split(os.path.sep)[-1]:
+    # print("is file correct location?", __file__ )
+    print("check this out", os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower(), os.path.join("fastcvapp", "fastcvapp", "examples"), os.getcwd())
+    print("checking these paths case insensitively: ",  os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
+    #The windows file system is case-insensitive. https://stackoverflow.com/questions/21173979/how-do-i-get-path-to-python-script-with-proper-case
+    if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
         sys.path.append(
             ".."
         )  # when running from examples folder, append the upper level
-    else:
+        print("running from fcva examples folder!")
+    elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
         # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
         sys.path.append("../FastCVApp")  # when running from main folder
+        print("running from fcva\ fcva  folder!")
 
 from FastCVApp.FCVAutils import FCVA_update_resources
 #udpate paths here
