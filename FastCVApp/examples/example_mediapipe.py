@@ -7,12 +7,7 @@ from mediapipe.framework.formats import landmark_pb2
 import time
 from collections import deque
 
-# # / and \ works on windows, only / on mac tho 
-# sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2.webm"
-# sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
-sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
-# sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
-# sourcelocation = "NDA"
+
 
 #u gotta run this from cmd, run python file/F5(debug) on vscode fails., u have to PRESS THE BUTTON 
 
@@ -23,15 +18,34 @@ else:
     # this example is importing from a higher level package if running from cmd: https://stackoverflow.com/a/41575089
 
     # add the right path depending on if you're running from examples or from main folder:
-    if "examples" in os.getcwd().split(os.path.sep)[-1]:
+    # print("is file correct location?", __file__ )
+    print("check this out", os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower(), os.path.join("fastcvapp", "fastcvapp", "examples"), os.getcwd())
+    print("checking these paths case insensitively: ",  os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
+    #The windows file system is case-insensitive. https://stackoverflow.com/questions/21173979/how-do-i-get-path-to-python-script-with-proper-case
+    if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
         sys.path.append(
             ".."
         )  # when running from examples folder, append the upper level
-    else:
+        print("running from fcva examples folder!")
+
+        # # / and \ works on windows, only / on mac tho 
+        # sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2.webm"
+        # sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
+        sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+        # sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
+        # sourcelocation = "NDA"
+        from FCVAutils import FCVA_update_resources
+    elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
         # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
         sys.path.append("../FastCVApp")  # when running from main folder
+        print("running from fcva\ fcva  folder!")
+        sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+        from FCVAutils import FCVA_update_resources
+    else:
+        print("running from root folder!")
+        sourcelocation = os.path.join("FastCVApp", "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+        from FastCVApp.FCVAutils import FCVA_update_resources
 
-from FCVAutils import FCVA_update_resources
 #udpate paths here
 FCVA_update_resources(sourcelocationVAR=sourcelocation) #this has the sys.path.append(sys._MEIPASS)
 
@@ -125,8 +139,13 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     print("location of file if name main?", __file__, os.getpid() )
     # print("paths??", sys.path)
-    import FastCVApp
-    app = FastCVApp.FCVA()
+    #running from fastcvapp/fastcvapp or fastcvapp/fastcvapp/examples
+    if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+        import FastCVApp
+        app = FastCVApp.FCVA()
+    else: #run as regular, from root folder
+        import FastCVApp.FastCVApp
+        app = FastCVApp.FastCVApp.FCVA()
     app.appliedcv = apply_mediapipe_func
 
     # # / and \ works on windows, only / on mac tho 
