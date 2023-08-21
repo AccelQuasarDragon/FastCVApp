@@ -14,11 +14,19 @@ from collections import deque
 if hasattr(sys, "_MEIPASS"):
     pass
 else:
+    # if "examples" in os.getcwd().split(os.path.sep)[-1]:
+    #     sys.path.append(
+    #         ".."
+    #     )  # when running from examples folder, append the upper level
+    # else:
+    #     # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
+    #     sys.path.append("../FastCVApp")  
     # if you're making your own app, you don't need this if-else block. This is just vanity code so this file can be run from main FastCVApp folder or from the examples subfolder.
     # this example is importing from a higher level package if running from cmd: https://stackoverflow.com/a/41575089
 
     # add the right path depending on if you're running from examples or from main folder:
     # print("is file correct location?", __file__ )
+    
     print("check this out", os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower(), os.path.join("fastcvapp", "fastcvapp", "examples"), os.getcwd())
     print("checking these paths case insensitively: ",  os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
     #The windows file system is case-insensitive. https://stackoverflow.com/questions/21173979/how-do-i-get-path-to-python-script-with-proper-case
@@ -27,25 +35,42 @@ else:
             ".."
         )  # when running from examples folder, append the upper level
         print("running from fcva examples folder!")
-
+        from FCVAutils import FCVA_update_resources
+        sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+    elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
+        # assume they're outside the examples folder, so add fastcvapp/fastcvapp (which from fastcvapp/fastcvapp/examples is ../FastCVApp). this is because script path is ALWAYS added to sys.path as per: https://stackoverflow.com/questions/6416424/why-does-my-python-not-add-current-working-directory-to-the-path
+        sys.path.append("../FastCVApp")  
+        print("running from inside fastcvapp/fastcvapp folder!")
+        from FCVAutils import FCVA_update_resources
+        sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+    else:
+        sys.path.append("../FastCVApp")  
+        print("running from outside the fcva examples folder!")
+        from FastCVApp.FCVAutils import FCVA_update_resources
         # # / and \ works on windows, only / on mac tho 
         # sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2.webm"
-        # sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
-        sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+        sourcelocation = os.path.join("FastCVApp", "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
         # sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
         # sourcelocation = "NDA"
-        from FCVAutils import FCVA_update_resources
-    elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
-        # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
-        sys.path.append("../FastCVApp")  # when running from main folder
-        print("running from fcva\ fcva  folder!")
-        sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
-        from FCVAutils import FCVA_update_resources
-    else:
-        print("running from root folder!")
-        sourcelocation = os.path.join("FastCVApp", "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
-        from FastCVApp.FCVAutils import FCVA_update_resources
 
+# https://stackoverflow.com/questions/6416424/why-does-my-python-not-add-current-working-directory-to-the-path
+
+# SOLUTION
+# if you are not in examples or fcva/fcva folder, 
+# append the top level folder of  to the sys.path
+
+# It is the script's directory that is added
+
+# import os
+# sys.path.append(
+#             ".."
+#         )
+# sys.path.append(os.getcwd())
+# print(sys.path)
+# print(os.getcwd())
+# import FastCVApp
+
+# from FCVAutils import FCVA_update_resources
 #udpate paths here
 FCVA_update_resources(sourcelocationVAR=sourcelocation) #this has the sys.path.append(sys._MEIPASS)
 
@@ -139,14 +164,20 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     print("location of file if name main?", __file__, os.getpid() )
     # print("paths??", sys.path)
-    #running from fastcvapp/fastcvapp or fastcvapp/fastcvapp/examples
-    if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
-        import FastCVApp
-        app = FastCVApp.FCVA()
-    else: #run as regular, from root folder
-        import FastCVApp.FastCVApp
-        app = FastCVApp.FastCVApp.FCVA()
+    if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+        print("running from fcva examples folder!")
+        import FastCVApp 
+    elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
+        print("running from inside fastcvapp/fastcvapp folder!")
+        import FastCVApp 
+    else:
+        print("running from outside the fcva examples folder!")
+        from FastCVApp import FastCVApp 
+
+    
+    app = FastCVApp.FCVA()
     app.appliedcv = apply_mediapipe_func
+    print("what is app?", app, app.appliedcv)
 
     # # / and \ works on windows, only / on mac tho 
     app.source = sourcelocation
