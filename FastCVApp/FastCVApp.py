@@ -6,10 +6,11 @@ import numpy as np
 
 #check if you're running in fastcvapp/fastcvapp OR fastcvapp/fastcvapp/examples folder
 print("checking these paths case insensitively (fastcvapp.py): ", os.path.join("fastcvapp", "fastcvapp").lower(), os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
-if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
-    from FCVAutils import fprint
-else: #run as regular, from root folder
-    from FastCVApp.FCVAutils import fprint
+# if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+#     from FCVAutils import fprint
+# else: #run as regular, from root folder
+#     from FastCVApp.FCVAutils import fprint
+from FCVAutils import fprint
 
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
@@ -359,10 +360,11 @@ class FCVA:
     def run(self):
         try:
             #running from fastcvapp/fastcvapp or fastcvapp/fastcvapp/examples
-            if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
-                namecheck = "FastCVApp"
-            else: #run as regular, from root folder
-                namecheck = "FastCVApp.FastCVApp"
+            # if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+            #     namecheck = "FastCVApp"
+            # else: #run as regular, from root folder
+            #     namecheck = "FastCVApp.FastCVApp"
+            namecheck = "FastCVApp"
 
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
             if __name__ == namecheck:
@@ -592,10 +594,11 @@ class FCVA:
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
-                        namecheck = "FastCVApp"
-                    else: #run as regular, from root folder
-                        namecheck = "FastCVApp.FastCVApp"
+                    # if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+                    #     namecheck = "FastCVApp"
+                    # else: #run as regular, from root folder
+                    #     namecheck = "FastCVApp.FastCVApp"
+                    namecheck = "FastCVApp"
                     if __name__ == namecheck:
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
