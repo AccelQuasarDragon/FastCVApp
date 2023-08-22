@@ -3,7 +3,15 @@ import cv2
 import time
 import os, sys
 import numpy as np
+
+#check if you're running in fastcvapp/fastcvapp OR fastcvapp/fastcvapp/examples folder
+print("checking these paths case insensitively (fastcvapp.py): ", os.path.join("fastcvapp", "fastcvapp").lower(), os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
+# if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+#     from FCVAutils import fprint
+# else: #run as regular, from root folder
+#     from FastCVApp.FCVAutils import fprint
 from FCVAutils import fprint
+
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
@@ -129,8 +137,8 @@ def open_cvpipeline(*args):
             # https://stackoverflow.com/a/50098973
             from pathlib import Path
 
-            print("file location?", Path(__file__).absolute())
-            print("cwd???3", os.getcwd())
+            fprint("file location?", Path(__file__).absolute())
+            fprint("cwd???3", os.getcwd())
             #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
             # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
             from sys import platform
@@ -154,7 +162,7 @@ def open_cvpipeline(*args):
                     tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
 
-            fprint("what is getcwd??", os.getcwd())
+            # fprint("what is getcwd??", os.getcwd())
             #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
 
 
@@ -351,8 +359,15 @@ class FCVA:
 
     def run(self):
         try:
+            #running from fastcvapp/fastcvapp or fastcvapp/fastcvapp/examples
+            # if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+            #     namecheck = "FastCVApp"
+            # else: #run as regular, from root folder
+            #     namecheck = "FastCVApp.FastCVApp"
+            namecheck = "FastCVApp"
+
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "FastCVApp":
+            if __name__ == namecheck:
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
@@ -579,7 +594,12 @@ class FCVA:
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if __name__ == "FastCVApp":
+                    # if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+                    #     namecheck = "FastCVApp"
+                    # else: #run as regular, from root folder
+                    #     namecheck = "FastCVApp.FastCVApp"
+                    namecheck = "FastCVApp"
+                    if __name__ == namecheck:
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
                         print("FCVA FCVAWidget __init__ detected no multiprocessing, importing as such", flush=True)
@@ -926,12 +946,12 @@ class FCVA:
                     print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
         
         #change the classdef so that stuff becomes available. This REALLY cannot be called more than once...
-        FCVAWidget.cvpartitions = args[0]
-        FCVAWidget.bufferlen = args[1]
-        FCVAWidget.source = args[2]
-        FCVAWidget.fps = args[3]
-        FCVAWidget.appliedcv = args[4]
-        FCVAWidget.bufferwaitVAR2 = args[5]
+        FCVAWidget.cvpartitions     = args[0]
+        FCVAWidget.bufferlen        = args[1]
+        FCVAWidget.source           = args[2]
+        FCVAWidget.fps              = args[3]
+        FCVAWidget.appliedcv        = args[4]
+        FCVAWidget.bufferwaitVAR2   = args[5]
 
         # BACKSLASHES NOT COMPATIBLE WITH FSTRINGS: https://stackoverflow.com/questions/66173070/how-to-put-backslash-escape-sequence-into-f-string SOLUTION IS TO DO THINGS IN PYTHON SIDE, (set id.text values, etc)
         FCVAWidget_KV = f"""
