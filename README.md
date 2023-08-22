@@ -4,6 +4,9 @@ What is Fast CV App? Fast Computer Vision App is a small framework, guide, and e
 
 Here you will learn know how to sidestep bottlenecks using multiprocessing and shared memory. Fast CV App was inspired by the ease and speed of [FastAPI](https://fastapi.tiangolo.com/), and while the decorator functionality of FastAPI is not available, rest assured that there are tutorials and examples to make a working CV App within 15 minutes. 
 
+# Getting Started (Youtube Link)
+
+[![Watch the video](https://img.youtube.com/vi/YnhHaKEx7pY/maxresdefault.jpg)](https://www.youtube.com/embed/YnhHaKEx7pY)
 
 # See for yourself:
 
