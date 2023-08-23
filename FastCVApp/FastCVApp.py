@@ -383,7 +383,8 @@ class FCVA:
 
                     # if you're in examples folder, path is gonna be wrong, so fix it:
                     dirlist = os.getcwd().split(os.path.sep)
-                    if "examples" in dirlist[-1]:
+                    # if "examples" in dirlist[-1]:
+                    if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
                         # pathjoin is weird: https://stackoverflow.com/questions/2422798/python-os-path-join-on-windows
                         dirlist_source = (
                             dirlist[0]

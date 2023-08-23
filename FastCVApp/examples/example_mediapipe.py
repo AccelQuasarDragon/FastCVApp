@@ -16,15 +16,18 @@ else:
     # this example is importing from a higher level package if running from cmd: https://stackoverflow.com/a/41575089
 
     #fix paths
-    if "examples" in os.getcwd().split(os.path.sep)[-1]:
+    # if "examples" in os.getcwd().split(os.path.sep)[-1]:
+    if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
         sys.path.append(
             os.path.dirname(os.path.dirname(__file__))
         )  # when running from examples folder, append the upper level
-    else:
+    elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
         # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
         # sys.path.append("../FastCVApp")  
         sys.path.append(os.path.dirname(os.path.dirname(__file__)))  
-        print("path", os.path.dirname(os.path.dirname(__file__)))
+        print("path?..", os.path.dirname(os.path.dirname(__file__)), sys.path)
+
+
     #now for each case, import things properly:
     #case #1: from fastcvapp
     #case #2: from fastcvapp/fastcvapp
@@ -66,12 +69,15 @@ else:
     #     # sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
     #     # sourcelocation = "NDA"
 
-sourcelocation = os.path.join( os.path.dirname(os.path.dirname(__file__)), "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+sourcelocation = os.path.join( os.path.dirname(os.path.dirname(__file__)), "examples") 
 from FCVAutils import FCVA_update_resources
 print("what is sourcelocation", sourcelocation)
 # print("prepping for utils", sourcelocation.split(os.sep)[-1])
 #udpate paths here
-FCVA_update_resources(sourcelocationVAR=sourcelocation) #this has the sys.path.append(sys._MEIPASS)
+FCVA_update_resources(sourcelocationVAR=sourcelocation, destlocationVAR = "examples") 
+# reminder that destlocation is w.r.t. os.getcwd(), which is the FastCVapp.py folder in code and FastCVApp.exe in pyinstaller, also it TAKES A LIST, so probably typehint it as well
+
+#this has the sys.path.append(sys._MEIPASS)
 
 # importing here means it's available to the subprocess as well. You can probably cut loading time by only loading mediapipe for the right subprocess.
 
@@ -179,6 +185,22 @@ if __name__ == "__main__":
     
     # # / and \ works on windows, only / on mac tho 
     relativesource = os.path.join( "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+    #let's say this is a full path from __file__
+    #how does fcva proper search for it?
+    #what if i don't rewrite evyerhing, instead of changing os.getcwd I add fcva/fcva to path?
+    #ok, in that case how does fcva proper still search for this file?
+    #GIGA WRONG
+    #maybe it's time to make it optional...
+    #relative works for executable
+    #relative works for fcva/fcva/examples and fcva/fcva, but it fails for top level fcva, which is similar to how it's called from PyPI
+    #search technique:
+    #glob (on all sys.path + relative import).__str__() if it exists
+    #then all u have to do is add the fcva/fcva folder to sys.path
+    #when you import FastCVApp it adds it's folder to sys.path, for example:
+    # sys.path.append(
+    #         os.path.dirname(os.path.dirname(__file__))
+    #     ) 
+    #maybe this 1 change will fix all the path problems as well....,, at least for fcva/fcva and fcva/fcva/examples
     app.source = relativesource
     app.fps = 1 / 30
     app.title = "Mediapipe example by Pengindoramu"

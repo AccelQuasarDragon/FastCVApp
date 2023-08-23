@@ -8,7 +8,7 @@ from pathlib import Path
 def fprint(*args):
 	print(os.getpid(), time.time(), *args, flush = True)
 
-def FCVA_update_resources(*args, sourcelocationVAR = False):
+def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = False):
 	'''
 	this is to update paths, for example when an app is packaged with pyinstaller
 	#keyword argument notes: https://treyhunner.com/2018/04/keyword-arguments-in-python/#What_are_keyword_arguments? 
@@ -22,7 +22,7 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 		#possibly pyinstaller updated
 		print("MMEIPAS APPENDED CORRECT?", sys._MEIPASS)
 		#solution: when u run the exe, check for the file/folder and if it's there or not > then if not copy it from tmpdir
-		if sourcelocationVAR:
+		if sourcelocationVAR and destlocationVAR:
 			from sys import platform
 			print("old os.get cwd", os.getcwd())
 			if platform == "darwin":
@@ -93,7 +93,8 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 					# actualsourcefolder = os.path.join(*sourcelocationVAR.split(os.sep)[:-1]) 
 					#getcwd is already the folder the exe is in on windows and on mac I already set it similar using change cwd.
 					# actualsourcefolder = os.path.join("examples", "creativecommonsmedia") 
-					actualsourcefolder = os.path.join("examples") 
+					# actualsourcefolder = os.path.join("examples") 
+					actualsourcefolder = os.path.join(destlocationVAR) 
 					fprint("nothing got copied", tempsourcefolder, actualsourcefolder)
 					shutil.copytree(tempsourcefolder, actualsourcefolder, dirs_exist_ok = True)
 					# existsornot = os.path.isdir(actualsourcefolder)
