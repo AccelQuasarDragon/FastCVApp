@@ -178,7 +178,8 @@ if __name__ == "__main__":
     app.appliedcv = apply_mediapipe_func
     
     # # / and \ works on windows, only / on mac tho 
-    app.source = sourcelocation
+    relativesource = os.path.join( "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+    app.source = relativesource
     app.fps = 1 / 30
     app.title = "Mediapipe example by Pengindoramu"
     # print("starting?", os.getcwd(), os.path.exists(app.source), flush = True)
