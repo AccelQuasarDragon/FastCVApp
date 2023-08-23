@@ -84,11 +84,14 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 					if platform == "win32":
 						tempsourcefolder = os.path.join(*tempsource.split(os.sep)[:-1]) 
 					if platform == "darwin":
-						tempsourcefolder = os.path.join(os.sep, *tempsource.split(os.sep)[:-1]) 
+						# tempsourcefolder = os.path.join(os.sep, *tempsource.split(os.sep)[:-1])
+						# test if I can just copy the examples folder 
+						tempsourcefolder = os.path.join(os.sep, *tempsource.split(os.sep)[:-2]) 
 					# actualsourcefolder = os.path.join(*actualsource.split(os.sep)[:-1]) 
 					# rootguyvar = os.path.dirname(__file__)
 					# fprint("what is this folder?", sourcelocationVAR, "===", *sourcelocationVAR.split(os.sep)[:-1], "===", tempsourcefolder)
 					# actualsourcefolder = os.path.join(*sourcelocationVAR.split(os.sep)[:-1]) 
+					#getcwd is already the folder the exe is in on windows and on mac I already set it similar using change cwd.
 					actualsourcefolder = os.path.join("examples", "creativecommonsmedia") 
 					fprint("nothing got copied", tempsourcefolder, actualsourcefolder)
 					shutil.copytree(tempsourcefolder, actualsourcefolder, dirs_exist_ok = True)
