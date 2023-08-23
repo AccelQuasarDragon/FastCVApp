@@ -185,9 +185,18 @@ if __name__ == "__main__":
     
     # # / and \ works on windows, only / on mac tho 
     relativesource = os.path.join( "examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+    
     #let's say this is a full path from __file__
     #how does fcva proper search for it?
     #what if i don't rewrite evyerhing, instead of changing os.getcwd I add fcva/fcva to path?
+        #there is aproblem with that? it might mess with pathing
+        #all fcva/fcva to path does is make the relative imports work
+        #so let's say I add fcva/fcva to path, that's ok right?
+        #how about when running from fcva(1)/fcva(2)/examples(3) from pyinstaller(4)
+            #how does copying files work (this is just a pyinstaller problem since I check for filepaths)?
+            #how would fcva.py search for the audio file?
+        #this is the WORST problem because (2)(3)(4) work but not (1)...
+        #NEW PLAN: let's just try adding fcva/fcva folder to path and use the old code if that fixes everything
     #ok, in that case how does fcva proper still search for this file?
     #GIGA WRONG
     #maybe it's time to make it optional...
