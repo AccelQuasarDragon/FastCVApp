@@ -3,12 +3,19 @@ import cv2
 import time
 import os, sys
 import numpy as np
+
+#check if you're running in fastcvapp/fastcvapp OR fastcvapp/fastcvapp/examples folder
+print("checking these paths case insensitively (fastcvapp.py): ", os.path.join("fastcvapp", "fastcvapp").lower(), os.path.join("fastcvapp", "fastcvapp", "examples").lower(), os.getcwd().lower())
+# if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+#     from FCVAutils import fprint
+# else: #run as regular, from root folder
+#     from FastCVApp.FCVAutils import fprint
 from FCVAutils import fprint
+
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
 import blosc2
-import pathlib
 
 def frameblock(*args):
     '''
@@ -128,10 +135,10 @@ def open_cvpipeline(*args):
             #assume this file structure:
             # this file\examples\creativecommonsmedia\pose_landmarker_full.task is the location
             # https://stackoverflow.com/a/50098973
-            # from pathlib import Path
+            from pathlib import Path
 
-            # print("file location?", Path(__file__).absolute())
-            print("cwd???3", os.getcwd())
+            fprint("file location?", Path(__file__).absolute())
+            fprint("cwd???3", os.getcwd())
             #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
             # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
             from sys import platform
@@ -155,7 +162,7 @@ def open_cvpipeline(*args):
                     tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
 
-            fprint("what is getcwd??", os.getcwd())
+            # fprint("what is getcwd??", os.getcwd())
             #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
 
 
@@ -352,8 +359,15 @@ class FCVA:
 
     def run(self):
         try:
+            #running from fastcvapp/fastcvapp or fastcvapp/fastcvapp/examples
+            # if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+            #     namecheck = "FastCVApp"
+            # else: #run as regular, from root folder
+            #     namecheck = "FastCVApp.FastCVApp"
+            namecheck = "FastCVApp"
+
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "FastCVApp":
+            if __name__ == namecheck:
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
@@ -364,72 +378,50 @@ class FCVA:
                     pass
 
                 elif platform == "win32" or platform == "darwin":
-                    if hasattr(sys, "_MEIPASS"):
-                        suspectedpathlist = sys.path+[os.getcwd(), sys._MEIPASS]
-                    else:
-                        suspectedpathlist = sys.path+[os.getcwd()]
-                    solution = []
-                    for pathstr in suspectedpathlist:
-                        pathoption = list(pathlib.Path(pathstr).rglob(self.source))
-                        if pathoption != []:
-                            # solution = list(pathlib.Path(pathstr).rglob("FastCVApp.py"))[0].resolve().__str__()
-                            solution.append(*pathoption)
-                    if len(solution) == 0:
-                        print("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution, flush=True)
-                    if len(solution) != 1:
-                        #warn user if multiple paths detected or none:
-                        print("there should only be one path to", self.source," check your env", solution, flush=True)
-                    # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
-                    self.source = solution[0].resolve().__str__()
-                    print("checking isfile with a raw string", os.path.isfile("I:\\CODING\\FastCVApp\\FastCVApp\\examples\\creativecommonsmedia\\Elephants Dream charstart2FULL_265.mp4"), self.source, type(self.source), os.path.isfile(self.source))
-                    if not os.path.isfile(self.source):
-                        raise Exception(
-                                "Source failed isfile check: " + self.source, type(self.source), 
-                            )
-
                     # Windows...
                     # check current directory, then check tmpfolder, then complain:
 
-                    # # if you're in examples folder, path is gonna be wrong, so fix it:
-                    # dirlist = os.getcwd().split(os.path.sep)
+                    # if you're in examples folder, path is gonna be wrong, so fix it:
+                    dirlist = os.getcwd().split(os.path.sep)
                     # if "examples" in dirlist[-1]:
-                    #     # pathjoin is weird: https://stackoverflow.com/questions/2422798/python-os-path-join-on-windows
-                    #     dirlist_source = (
-                    #         dirlist[0]
-                    #         + os.path.sep
-                    #         + os.path.join(*dirlist[1 : len(dirlist) - 1])
-                    #         + os.path.sep
-                    #         + self.source
-                    #     )
-                    #     if not os.path.isfile(dirlist_source):
-                    #         print("not a playable file: ??", dirlist_source)
-                    #     else:
-                    #         self.source = dirlist_source
-                    # # NOW check current directory:
-                    # elif os.path.isfile(self.source):
-                    #     print("file loaded:", os.getcwd() + os.sep + self.source)
-                    # elif not os.path.isfile(self.source):
-                    #     print(
-                    #         "Source failed isfile check for current directory: "
-                    #         + str(os.path.isfile(self.source))
-                    #         + ". Checking location: "
-                    #         + str(os.path.join(os.getcwd(), self.source))
-                    #         + " Checking tmpdir next:"
-                    #     )
+                    if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+                        # pathjoin is weird: https://stackoverflow.com/questions/2422798/python-os-path-join-on-windows
+                        dirlist_source = (
+                            dirlist[0]
+                            + os.path.sep
+                            + os.path.join(*dirlist[1 : len(dirlist) - 1])
+                            + os.path.sep
+                            + self.source
+                        )
+                        if not os.path.isfile(dirlist_source):
+                            print("not a playable file: ??", dirlist_source)
+                        else:
+                            self.source = dirlist_source
+                    # NOW check current directory:
+                    elif os.path.isfile(self.source):
+                        print("file loaded:", os.getcwd() + os.sep + self.source)
+                    elif not os.path.isfile(self.source):
+                        print(
+                            "Source failed isfile check for current directory: "
+                            + str(os.path.isfile(self.source))
+                            + ". Checking location: "
+                            + str(os.path.join(os.getcwd(), self.source))
+                            + " Checking tmpdir next:"
+                        )
 
                     # print("#check sys attr:", hasattr(sys, '_MEIPASS'))
-                    # if hasattr(sys, "_MEIPASS"):
-                    #     # if file is frozen by pyinstaller add the MEIPASS folder to path:
-                    #     sys.path.append(sys._MEIPASS)
-                    #     tempsource = sys._MEIPASS + os.sep + self.source
+                    if hasattr(sys, "_MEIPASS"):
+                        # if file is frozen by pyinstaller add the MEIPASS folder to path:
+                        sys.path.append(sys._MEIPASS)
+                        tempsource = sys._MEIPASS + os.sep + self.source
 
-                    #     if os.path.isfile(tempsource):
-                    #         self.source = tempsource
-                    #     # checked everything, now complain:
-                    #     elif not os.path.isfile(tempsource):
-                    #         raise Exception(
-                    #             "Source failed isfile check: " + str(tempsource)
-                    #         )
+                        if os.path.isfile(tempsource):
+                            self.source = tempsource
+                        # checked everything, now complain:
+                        elif not os.path.isfile(tempsource):
+                            raise Exception(
+                                "Source failed isfile check: " + str(tempsource)
+                            )
                 # read just to get the fps
                 video = cv2.VideoCapture(self.source)
                 self.fps = video.get(cv2.CAP_PROP_FPS)
@@ -603,7 +595,12 @@ class FCVA:
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if __name__ == "FastCVApp":
+                    # if os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower() or os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+                    #     namecheck = "FastCVApp"
+                    # else: #run as regular, from root folder
+                    #     namecheck = "FastCVApp.FastCVApp"
+                    namecheck = "FastCVApp"
+                    if __name__ == namecheck:
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
                         print("FCVA FCVAWidget __init__ detected no multiprocessing, importing as such", flush=True)
@@ -950,12 +947,12 @@ class FCVA:
                     print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
         
         #change the classdef so that stuff becomes available. This REALLY cannot be called more than once...
-        FCVAWidget.cvpartitions = args[0]
-        FCVAWidget.bufferlen = args[1]
-        FCVAWidget.source = args[2]
-        FCVAWidget.fps = args[3]
-        FCVAWidget.appliedcv = args[4]
-        FCVAWidget.bufferwaitVAR2 = args[5]
+        FCVAWidget.cvpartitions     = args[0]
+        FCVAWidget.bufferlen        = args[1]
+        FCVAWidget.source           = args[2]
+        FCVAWidget.fps              = args[3]
+        FCVAWidget.appliedcv        = args[4]
+        FCVAWidget.bufferwaitVAR2   = args[5]
 
         # BACKSLASHES NOT COMPATIBLE WITH FSTRINGS: https://stackoverflow.com/questions/66173070/how-to-put-backslash-escape-sequence-into-f-string SOLUTION IS TO DO THINGS IN PYTHON SIDE, (set id.text values, etc)
         FCVAWidget_KV = f"""
