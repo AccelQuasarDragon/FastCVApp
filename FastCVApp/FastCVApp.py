@@ -374,7 +374,8 @@ class FCVA:
                         pathoption = list(pathlib.Path(pathstr).rglob(self.source))
                         testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
                         if pathoption != [] and testfilter != []:
-                            solution.append(*testfilter)
+                            # solution.append(*testfilter)
+                            solution += testfilter
                     if len(solution) == 0:
                         fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
                     if len(solution) != 1:

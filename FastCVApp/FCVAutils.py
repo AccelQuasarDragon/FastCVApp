@@ -39,10 +39,12 @@ def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = Fa
 			solution = []
 			for pathstr in sys.path+[os.getcwd(), sys._MEIPASS]:
 				pathoption = list(pathlib.Path(pathstr).rglob(os.path.join(*sourcelocationVAR)))
-				if pathoption != []:
-					print("pathoption fcvautils", pathoption)
-					testfilter = [pathselection for pathselection in pathoption if "var" not in pathselection.resolve().__str__()]
-					solution.append(*testfilter)
+				testfilter = [pathselection for pathselection in pathoption if "var" not in pathselection.resolve().__str__() or ".app" not in pathselection.resolve().__str__()]
+				# print("pathoption fcvautils", pathoption)
+				print("testfilter fcvautils", testfilter)
+				if testfilter != []:
+					# solution.append(*testfilter)
+					solution += testfilter
 			solution = [str(pathobj) for pathobj in solution]
 			if len(solution) == 0:
 				fprint("no sourcelocations detected in sys.path, os.getcwd() and sys._MEIPASS, picking the first one", solution, sourcelocationVAR)
@@ -50,14 +52,16 @@ def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = Fa
 			if len(solution) > 1:
 				fprint("multiple sourcelocations detected in sys.path, os.getcwd() and sys._MEIPASS, picking the first one", solution, sourcelocationVAR)
 			
+			print("solution answer?", solution)
 			tempsource = solution[0]
+			print("who is chosen tempsource?", tempsource)
 
 			if os.path.isfile(tempsource):
 				#then copy the dirname of the directory holding tempsource, assuming basepath is os.getcwd\
 				tempsourcefolder = os.path.dirname(tempsource)
 			#if ur a directory u don't have to worry about anything
 
-			actualsourcefolder = os.path.join(os.getcwd(), destlocationVAR)
+			actualsourcefolder = os.path.join(os.getcwd(), *destlocationVAR)
 			shutil.copytree(tempsourcefolder, actualsourcefolder, dirs_exist_ok = True)
 				
 			

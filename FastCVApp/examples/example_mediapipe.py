@@ -40,7 +40,8 @@ else:
             testfilter = [pathselection for pathselection in pathoption]
             if pathoption != []:
                 # solution = list(pathlib.Path(pathstr).rglob("FastCVApp.py"))[0].resolve().__str__()
-                solution.append(*testfilter)
+                # solution.append(*testfilter)
+                solution += testfilter
         # print("sol??", solution)
         # solution = [print("strvar", strvar) for strvar in solution]
         solution = [os.path.dirname(pathobj) for pathobj in solution]
