@@ -371,9 +371,17 @@ class FCVA:
                     solution = []
                     for pathstr in suspectedpathlist:
                         pathoption = list(pathlib.Path(pathstr).rglob(self.source))
-                        if pathoption != []:
+                        print("self.source", self.source)
+                        print("pathoption", pathoption)
+                        print("suspectedpathlist", suspectedpathlist)
+                        testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
+                        if pathoption != [] and testfilter != []:
                             # solution = list(pathlib.Path(pathstr).rglob("FastCVApp.py"))[0].resolve().__str__()
-                            solution.append(*[pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()])
+
+                            # print("checklist",[[pathselection.resolve().__str__(), type(pathselection.resolve().__str__()), ".app" in pathselection.resolve().__str__()] for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()])
+                            
+                            # print("testfilter len and obj", len(testfilter), testfilter)
+                            solution.append(*testfilter)
                     if len(solution) == 0:
                         print("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution, flush=True)
                     if len(solution) != 1:
