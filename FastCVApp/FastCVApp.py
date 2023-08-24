@@ -81,6 +81,7 @@ def int_to_partition(*args):
 
 def open_cvpipeline(*args):
     try:
+        import sys
         appliedcv                           = args[0]
         shared_analyzedVAR                  = args[1]
         shared_analyzedKeycountVAR          = args[2]
@@ -94,10 +95,12 @@ def open_cvpipeline(*args):
         FCVAWidget_shared_metadata_dictVAR2 = args[10]
 
         #didn't know about apipreference: https://stackoverflow.com/questions/73753126/why-does-opencv-read-video-faster-than-ffmpeg
-        currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
         #if source exists (that way you can just start the subprocess w/o requiring a source), if u change source you'll end up triggering the source change code in the while loop so ur good:
         if "source" in FCVAWidget_shared_metadata_dictVAR2.keys():
+            currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
             sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
+        else:
+            currentsource = None
         internal_framecount = 0
         force_monotonic_increasing = 0 #mediapipe keeps complaining about " Input timestamp must be monotonically increasing."
         instance_count = 0
@@ -113,7 +116,6 @@ def open_cvpipeline(*args):
         analyzed_dequeKEYS = deque(maxlen=bufferlen)
 
         #some examples do not require mediapipe, only load them when mediapipe has already been loaded
-        import sys
 
         # https://stackoverflow.com/questions/30483246/how-can-i-check-if-a-module-has-been-imported
         # fprint("is it mediapipe or mp? (it's the actual modulename, nice)", "mediapipe" in sys.modules, "mp" in sys.modules)
@@ -222,7 +224,7 @@ def open_cvpipeline(*args):
             #make sure things have started AND this processess is not stopped:
 
             #if source is different, close cap and reopen with new source: also remember this adds time to this already time critical function...
-            if currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]:
+            if "source" in FCVAWidget_shared_metadata_dictVAR2.keys() and currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]:
                 sourcecap.release()
                 sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
                 currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
@@ -340,6 +342,10 @@ def open_cvpipeline(*args):
                     if len(raw_deque) != 10:
                         fprint("reading is wrekt", len(raw_deque), [raw_dequeKEYS[x] for x in range(len(raw_dequeKEYS))], "partition number", partitionnumber, instance_count, bufferlen, maxpartitions, internal_framecount, framelist, current_framenumber)
                     # fprint("the for loop structure is slow...", time.time()-timeoog)
+            else:
+                import time
+                fprint("what's going on", "starttime" in FCVAWidget_shared_metadata_dictVAR2, ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2), FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)] )
+                time.sleep(1)
     except Exception as e: 
         print("open_appliedcv died!", e)
         import traceback
@@ -358,37 +364,40 @@ class FCVA:
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
                 # reference: https://stackoverflow.com/questions/8220108/how-do-i-check-the-operating-system-in-python
-                from sys import platform
-                if platform == "linux" or platform == "linux2":
-                    # linux
-                    pass
+                if hasattr(self, "source"):
+                    from sys import platform
+                    if platform == "linux" or platform == "linux2":
+                        # linux
+                        pass
 
-                elif platform == "win32" or platform == "darwin":
-                    #TL:DR; this block of code looks for self.source using rglob and looks through sys.path, os.getcwd and sys.MEIPASS to cover all my bases, if it finds more than 1 source it complains and throws an error
-                    if hasattr(sys, "_MEIPASS"):
-                        suspectedpathlist = sys.path+[os.getcwd(), sys._MEIPASS]
-                    else:
-                        suspectedpathlist = sys.path+[os.getcwd()]
-                    solution = []
-                    for pathstr in suspectedpathlist:
-                        pathoption = list(pathlib.Path(pathstr).rglob(self.source))
-                        testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
-                        if pathoption != [] and testfilter != []:
-                            # solution.append(*testfilter)
-                            solution += testfilter
-                    if len(solution) == 0:
-                        fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
-                    if len(solution) != 1:
-                        #warn user if multiple paths detected or none:
-                        fprint("there should only be one path to", self.source," check your env", solution)
-                    # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
-                    self.source = solution[0].resolve().__str__()
-                    if not os.path.isfile(self.source):
-                        fprint("Source failed isfile check (so it doesn't exist or cannot be found): " + self.source, type(self.source))
-                # read just to get the fps
-                video = cv2.VideoCapture(self.source)
-                self.fps = video.get(cv2.CAP_PROP_FPS)
-                video.release()
+                    elif platform == "win32" or platform == "darwin":
+                        #TL:DR; this block of code looks for self.source using rglob and looks through sys.path, os.getcwd and sys.MEIPASS to cover all my bases, if it finds more than 1 source it complains and throws an error
+                        if hasattr(sys, "_MEIPASS"):
+                            suspectedpathlist = sys.path+[os.getcwd(), sys._MEIPASS]
+                        else:
+                            suspectedpathlist = sys.path+[os.getcwd()]
+                        solution = []
+                        for pathstr in suspectedpathlist:
+                            pathoption = list(pathlib.Path(pathstr).rglob(self.source))
+                            testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
+                            if pathoption != [] and testfilter != []:
+                                # solution.append(*testfilter)
+                                solution += testfilter
+                        if len(solution) == 0:
+                            fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
+                        if len(solution) != 1:
+                            #warn user if multiple paths detected or none:
+                            fprint("there should only be one path to", self.source," check your env", solution)
+                        # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
+                        self.source = solution[0].resolve().__str__()
+                        if not os.path.isfile(self.source):
+                            fprint("Source failed isfile check (so it doesn't exist or cannot be found): " + self.source, type(self.source))
+                    # read just to get the fps
+                    video = cv2.VideoCapture(self.source)
+                    self.fps = video.get(cv2.CAP_PROP_FPS)
+                    video.release()
+                else:
+                    self.source = None
                 #number of seconds to wait for mediapipe/your cv function to buffer
                 self.bufferwait = 2
 
@@ -574,11 +583,13 @@ class FCVA:
                 subprocess_list = []
 
                 self.FCVAWidget_shared_metadata_dict = shared_mem_manager.dict()
-                if hasattr(self, "source"):
+                if hasattr(self, "source") and self.source != None:
                     self.FCVAWidget_shared_metadata_dict["source"] = self.source
                     #sliderdata needs to udpate slider so just schedule for 1st valid frame with clock 0
                     Clock.schedule_once(partial(self.updateSliderData,self.FCVAWidget_shared_metadata_dict), 0)
                     fprint("schedule once???")
+                elif self.source == None:
+                    self.FCVAWidget_shared_metadata_dict["source"] = self.source
                 if hasattr(self, "bufferwaitVAR2"):
                     self.FCVAWidget_shared_metadata_dict["bufferwaitVAR2"] = self.bufferwaitVAR2
                 else: #default to 3 and say so
@@ -668,7 +679,7 @@ class FCVA:
                 FCVAWidget_shared_metadata_dictVAR["capfps"] = capfps
                 self.fps = FCVAWidget_shared_metadata_dictVAR["capfps"]
                 FCVAWidget_shared_metadata_dictVAR["maxseconds"] = maxseconds
-                print( maxseconds )
+                print( "maxseconds", maxseconds )
 
             def updateSliderElapsedTime(self, *args):
                 # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
