@@ -1,28 +1,54 @@
 import sys
+import os
+#u gotta run this from cmd, run python file/F5(debug) on vscode fails., u have to PRESS THE BUTTON 
+
+# # / and \ works on windows, only / on mac tho 
+# sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2.webm"
+# sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
+sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
+# sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
+# sourcelocation = "NDA"
 
 if hasattr(sys, "_MEIPASS"):
-    # if file is frozen by pyinstaller add the MEIPASS folder to path:
-    #FCVA_update_resources has the sys.path.append(sys._MEIPASS)
     pass
 else:
-    # if you're making your own app, you don't need this else block. This is just vanity code so I can run this from main FastCVApp folder or from the examples subfolder.
+    # if you're making your own app, you don't need this if-else block. This is just vanity code so this file can be run from main FastCVApp folder or from the examples subfolder.
     # this example is importing from a higher level package if running from cmd: https://stackoverflow.com/a/41575089
-    import os
 
     # add the right path depending on if you're running from examples or from main folder:
-    if "examples" in os.getcwd().split(os.path.sep)[-1]:
+    if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+        # when running from examples folder, append the upper level
         sys.path.append(
             ".."
-        )  # when running from examples folder, append the upper level
+        )  
+    elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
+        # assume they're in main folder (fastcvapp/fastcvapp) trying `python examples/example_backgroundsubtraction.py`
+        sys.path.append(os.path.dirname(os.path.dirname(__file__)))  
     else:
-        # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
-        sys.path.append("../FastCVApp")  # when running from main folder
+        import pathlib
+        solution = []
+        #check all paths in sys.path and find the fastcvapp folder that holds FastCVapp.py
+        for pathstr in sys.path+[os.getcwd()]:
+            pathoption = list(pathlib.Path(pathstr).rglob(os.path.join("FastCVApp", "FastCVApp.py")))
+            testfilter = [pathselection for pathselection in pathoption]
+            if pathoption != []:
+                # solution = list(pathlib.Path(pathstr).rglob("FastCVApp.py"))[0].resolve().__str__()
+                # solution.append(*testfilter)
+                solution += testfilter
+        # print("sol??", solution)
+        # solution = [print("strvar", strvar) for strvar in solution]
+        solution = [os.path.dirname(pathobj) for pathobj in solution]
+        if len(solution) != 1:
+            #warn user if multiple paths detected or none:
+            print("there should only be one path to FastCVApp/FastCVApp.py, check your env", solution, flush=True)
+        for solutionitem in solution:
+            sys.path.append(solutionitem)
+        print("appended solution!",sys.path)
 
 from FCVAutils import FCVA_update_resources
-# / and \ works on windows, only / on mac tho. the solution is to just os.path.join and os.sep for the separator
-sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
-
-FCVA_update_resources(sourcelocationVAR=sourcelocation)
+#udpate paths here
+# FCVA_update_resources(sourcelocationVAR = ["examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
+FCVA_update_resources(sourcelocationVAR = ["examples"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
 
 import cv2
 backSub = cv2.createBackgroundSubtractorMOG2()
