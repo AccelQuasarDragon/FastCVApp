@@ -364,6 +364,7 @@ class FCVA:
                     pass
 
                 elif platform == "win32" or platform == "darwin":
+                    #TL:DR; this block of code looks for self.source using rglob and looks through sys.path, os.getcwd and sys.MEIPASS to cover all my bases, if it finds more than 1 source it complains and throws an error
                     if hasattr(sys, "_MEIPASS"):
                         suspectedpathlist = sys.path+[os.getcwd(), sys._MEIPASS]
                     else:
@@ -371,74 +372,18 @@ class FCVA:
                     solution = []
                     for pathstr in suspectedpathlist:
                         pathoption = list(pathlib.Path(pathstr).rglob(self.source))
-                        print("self.source", self.source)
-                        print("pathoption", pathoption)
-                        print("suspectedpathlist", suspectedpathlist)
                         testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
                         if pathoption != [] and testfilter != []:
-                            # solution = list(pathlib.Path(pathstr).rglob("FastCVApp.py"))[0].resolve().__str__()
-
-                            # print("checklist",[[pathselection.resolve().__str__(), type(pathselection.resolve().__str__()), ".app" in pathselection.resolve().__str__()] for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()])
-                            
-                            # print("testfilter len and obj", len(testfilter), testfilter)
                             solution.append(*testfilter)
                     if len(solution) == 0:
-                        print("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution, flush=True)
+                        fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution, flush=True)
                     if len(solution) != 1:
                         #warn user if multiple paths detected or none:
-                        print("there should only be one path to", self.source," check your env", solution, flush=True)
+                        fprint("there should only be one path to", self.source," check your env", solution, flush=True)
                     # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
                     self.source = solution[0].resolve().__str__()
-                    print("checking isfile with a raw string", os.path.isfile("I:\\CODING\\FastCVApp\\FastCVApp\\examples\\creativecommonsmedia\\Elephants Dream charstart2FULL_265.mp4"), self.source, type(self.source), os.path.isfile(self.source))
                     if not os.path.isfile(self.source):
-                        raise Exception(
-                                "Source failed isfile check: " + self.source, type(self.source), 
-                            )
-                        
-
-                    # Windows...
-                    # check current directory, then check tmpfolder, then complain:
-
-                    # # if you're in examples folder, path is gonna be wrong, so fix it:
-                    # dirlist = os.getcwd().split(os.path.sep)
-                    # if "examples" in dirlist[-1]:
-                    #     # pathjoin is weird: https://stackoverflow.com/questions/2422798/python-os-path-join-on-windows
-                    #     dirlist_source = (
-                    #         dirlist[0]
-                    #         + os.path.sep
-                    #         + os.path.join(*dirlist[1 : len(dirlist) - 1])
-                    #         + os.path.sep
-                    #         + self.source
-                    #     )
-                    #     if not os.path.isfile(dirlist_source):
-                    #         print("not a playable file: ??", dirlist_source)
-                    #     else:
-                    #         self.source = dirlist_source
-                    # # NOW check current directory:
-                    # elif os.path.isfile(self.source):
-                    #     print("file loaded:", os.getcwd() + os.sep + self.source)
-                    # elif not os.path.isfile(self.source):
-                    #     print(
-                    #         "Source failed isfile check for current directory: "
-                    #         + str(os.path.isfile(self.source))
-                    #         + ". Checking location: "
-                    #         + str(os.path.join(os.getcwd(), self.source))
-                    #         + " Checking tmpdir next:"
-                    #     )
-
-                    # print("#check sys attr:", hasattr(sys, '_MEIPASS'))
-                    # if hasattr(sys, "_MEIPASS"):
-                    #     # if file is frozen by pyinstaller add the MEIPASS folder to path:
-                    #     sys.path.append(sys._MEIPASS)
-                    #     tempsource = sys._MEIPASS + os.sep + self.source
-
-                    #     if os.path.isfile(tempsource):
-                    #         self.source = tempsource
-                    #     # checked everything, now complain:
-                    #     elif not os.path.isfile(tempsource):
-                    #         raise Exception(
-                    #             "Source failed isfile check: " + str(tempsource)
-                    #         )
+                        fprint("Source failed isfile check (so it doesn't exist or cannot be found): " + self.source, type(self.source))
                 # read just to get the fps
                 video = cv2.VideoCapture(self.source)
                 self.fps = video.get(cv2.CAP_PROP_FPS)

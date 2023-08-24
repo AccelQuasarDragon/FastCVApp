@@ -7,14 +7,14 @@ from mediapipe.framework.formats import landmark_pb2
 import time
 from collections import deque
 
+#u gotta run this from cmd, run python file/F5(debug) on vscode fails., u have to PRESS THE BUTTON 
+
 # # / and \ works on windows, only / on mac tho 
 # sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2.webm"
 # sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
 sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4") 
 # sourcelocation = "examples\creativecommonsmedia\\30 fps counter.webm"
 # sourcelocation = "NDA"
-
-#u gotta run this from cmd, run python file/F5(debug) on vscode fails., u have to PRESS THE BUTTON 
 
 if hasattr(sys, "_MEIPASS"):
     pass
@@ -23,19 +23,14 @@ else:
     # this example is importing from a higher level package if running from cmd: https://stackoverflow.com/a/41575089
 
     # add the right path depending on if you're running from examples or from main folder:
-    # if "examples" in os.getcwd().split(os.path.sep)[-1]:
     if os.path.join("fastcvapp", "fastcvapp", "examples").lower() in os.getcwd().lower():
+        # when running from examples folder, append the upper level
         sys.path.append(
             ".."
-        )  # when running from examples folder, append the upper level
+        )  
     elif os.path.join("fastcvapp", "fastcvapp").lower() in os.getcwd().lower():
-        # assume they're in main folder trying `python examples/example_backgroundsubtraction.py`
-        # sys.path.append("../FastCVApp")  # when running from main folder
-
-        # sys.path.append("../FastCVApp")  # when running anywhere else
-        #I really need fastcvapp/fastcvapp in sys.path...
+        # assume they're in main folder (fastcvapp/fastcvapp) trying `python examples/example_backgroundsubtraction.py`
         sys.path.append(os.path.dirname(os.path.dirname(__file__)))  
-        print("path?..", os.path.dirname(os.path.dirname(__file__)), sys.path)
     else:
         import pathlib
         solution = []
@@ -45,7 +40,7 @@ else:
             if pathoption != []:
                 # solution = list(pathlib.Path(pathstr).rglob("FastCVApp.py"))[0].resolve().__str__()
                 solution.append(*pathoption)
-        print("sol??", solution)
+        # print("sol??", solution)
         # solution = [print("strvar", strvar) for strvar in solution]
         solution = [os.path.dirname(strvar) for strvar in solution]
         if len(solution) != 1:
