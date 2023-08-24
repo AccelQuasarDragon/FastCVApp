@@ -6,7 +6,7 @@ import shutil
 def fprint(*args):
 	print(os.getpid(), time.time(), *args, flush = True)
 
-def FCVA_update_resources(*args, sourcelocationVAR = False):
+def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = False):
 	'''
 	this is to update paths, for example when an app is packaged with pyinstaller
 	#keyword argument notes: https://treyhunner.com/2018/04/keyword-arguments-in-python/#What_are_keyword_arguments? 
@@ -20,7 +20,7 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 		#possibly pyinstaller updated
 		print("MMEIPAS APPENDED CORRECT?", sys._MEIPASS)
 		#solution: when u run the exe, check for the file/folder and if it's there or not > then if not copy it from tmpdir
-		if sourcelocationVAR:
+		if sourcelocationVAR and destlocationVAR:
 			from sys import platform
 			if platform == "darwin":
 				# https://stackoverflow.com/a/50564083
@@ -47,6 +47,7 @@ def FCVA_update_resources(*args, sourcelocationVAR = False):
 				# actualsourcefolder = os.path.join(*actualsource.split(os.sep)[:-1]) 
 				# rootguyvar = os.path.dirname(__file__)
 				# fprint("what is this folder?", sourcelocationVAR, "===", *sourcelocationVAR.split(os.sep)[:-1], "===", tempsourcefolder)
+				print("temsource VS actualsource and how are they made? it should be examples folder to examples", tempsourcefolder, actualsourcefolder)
 				actualsourcefolder = os.path.join(*sourcelocationVAR.split(os.sep)[:-1]) 
 				shutil.copytree(tempsourcefolder, actualsourcefolder, dirs_exist_ok = True)
 				# existsornot = os.path.isdir(actualsourcefolder)

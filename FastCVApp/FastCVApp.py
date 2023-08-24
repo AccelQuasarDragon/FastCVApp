@@ -376,10 +376,10 @@ class FCVA:
                         if pathoption != [] and testfilter != []:
                             solution.append(*testfilter)
                     if len(solution) == 0:
-                        fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution, flush=True)
+                        fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
                     if len(solution) != 1:
                         #warn user if multiple paths detected or none:
-                        fprint("there should only be one path to", self.source," check your env", solution, flush=True)
+                        fprint("there should only be one path to", self.source," check your env", solution)
                     # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
                     self.source = solution[0].resolve().__str__()
                     if not os.path.isfile(self.source):
