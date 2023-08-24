@@ -386,6 +386,7 @@ class FCVA:
                         raise Exception(
                                 "Source failed isfile check: " + self.source, type(self.source), 
                             )
+                        
 
                     # Windows...
                     # check current directory, then check tmpfolder, then complain:
