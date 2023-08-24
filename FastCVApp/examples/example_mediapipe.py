@@ -42,7 +42,7 @@ else:
                 solution.append(*pathoption)
         # print("sol??", solution)
         # solution = [print("strvar", strvar) for strvar in solution]
-        solution = [os.path.dirname(strvar) for strvar in solution]
+        solution = [os.path.dirname(pathobj) for pathobj in solution]
         if len(solution) != 1:
             #warn user if multiple paths detected or none:
             print("there should only be one path to FastCVApp/FastCVApp.py, check your env", solution, flush=True)
@@ -52,7 +52,7 @@ else:
 
 from FCVAutils import FCVA_update_resources
 #udpate paths here
-FCVA_update_resources(sourcelocationVAR=sourcelocation) #this has the sys.path.append(sys._MEIPASS)
+FCVA_update_resources(sourcelocationVAR = ["examples"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
 
 # importing here means it's available to the subprocess as well. You can probably cut loading time by only loading mediapipe for the right subprocess.
 
