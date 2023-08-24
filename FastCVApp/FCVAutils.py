@@ -40,9 +40,11 @@ def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = Fa
 			for pathstr in sys.path+[os.getcwd(), sys._MEIPASS]:
 				pathoption = list(pathlib.Path(pathstr).rglob(os.path.join(*sourcelocationVAR)))
 				if pathoption != []:
-					solution.append(*pathoption)
+					print("pathoption fcvautils", pathoption)
+					testfilter = [pathselection for pathselection in pathoption if "var" not in pathselection.resolve().__str__()]
+					solution.append(*testfilter)
 			solution = [str(pathobj) for pathobj in solution]
-			if len(solution) = 0:
+			if len(solution) == 0:
 				fprint("no sourcelocations detected in sys.path, os.getcwd() and sys._MEIPASS, picking the first one", solution, sourcelocationVAR)
 				return
 			if len(solution) > 1:

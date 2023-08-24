@@ -37,9 +37,10 @@ else:
         #check all paths in sys.path and find the fastcvapp folder that holds FastCVapp.py
         for pathstr in sys.path+[os.getcwd()]:
             pathoption = list(pathlib.Path(pathstr).rglob(os.path.join("FastCVApp", "FastCVApp.py")))
+            testfilter = [pathselection for pathselection in pathoption]
             if pathoption != []:
                 # solution = list(pathlib.Path(pathstr).rglob("FastCVApp.py"))[0].resolve().__str__()
-                solution.append(*pathoption)
+                solution.append(*testfilter)
         # print("sol??", solution)
         # solution = [print("strvar", strvar) for strvar in solution]
         solution = [os.path.dirname(pathobj) for pathobj in solution]
