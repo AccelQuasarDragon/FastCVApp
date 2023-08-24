@@ -60,6 +60,8 @@ def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = Fa
 				#then copy the dirname of the directory holding tempsource, assuming basepath is os.getcwd\
 				tempsourcefolder = os.path.dirname(tempsource)
 			#if ur a directory u don't have to worry about anything
+			else:
+				tempsourcefolder = tempsource
 
 			actualsourcefolder = os.path.join(os.getcwd(), *destlocationVAR)
 			shutil.copytree(tempsourcefolder, actualsourcefolder, dirs_exist_ok = True)
