@@ -418,6 +418,7 @@ class FCVA:
                 else:
                     # cvpartitions = 3
                     cvpartitions = 4
+                # print("how many paritions/ cv subprocesses?", cvpartitions)
                 #init shared dicts:
 
                 #nested shared obj works:

@@ -9,6 +9,14 @@ from collections import deque
 
 #u gotta run this from cmd, run python file/F5(debug) on vscode fails., u have to PRESS THE BUTTON 
 
+'''
+to compile with pyinstaller on windows/mac
+cd to examples folder (this folder)
+python -m PyInstaller WIN_Mediapipe.spec --clean 
+OR 
+python -m PyInstaller MAC_Mediapipe.spec --clean 
+'''
+
 # # / and \ works on windows, only / on mac tho 
 # sourcelocation = "examples\creativecommonsmedia\Elephants Dream charstart2.webm"
 # sourcelocation = os.path.join("examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.webm") 
