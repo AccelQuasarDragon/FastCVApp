@@ -871,6 +871,8 @@ class FCVA:
                                 #     # default to bgr
                                 #     self.colorfmtval = "bgr"
 
+                                # fprint("keys? where do I add colorfmtval?", self.shared_pool_meta_list) #shared pool meta list is from the cv subprocess
+                                fprint("keys? where do I add colorfmtval?", self.FCVAWidget_shared_metadata_dict.keys()) #NICEC I FOUND THE CORRECT SHARED DICT
                                 self.colorfmtval = "bgr"
                                 # self.colorfmtval = "bgra"
 
