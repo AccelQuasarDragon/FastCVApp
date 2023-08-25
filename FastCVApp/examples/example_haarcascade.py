@@ -136,7 +136,6 @@ if __name__ == "__main__":
     # / and \ works on windows, only / on mac tho
     app.source = sourcelocation
     app.cvpartitions = 6
-    app.fps = 1 / 30
     app.title = (
         'Haarcascade example by Pengindoramu ("works" but Mediapipe is a lot better)'
     )

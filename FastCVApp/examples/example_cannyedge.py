@@ -99,6 +99,5 @@ if __name__ == "__main__":
 
     # / and \ works on windows, only / on mac tho
     app.source = sourcelocation
-    app.fps = 1 / 30
     app.title = "Canny edge example by Pengindoramu"
     app.run()

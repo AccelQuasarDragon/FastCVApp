@@ -100,6 +100,5 @@ if __name__ == "__main__":
     app.appliedcv = sepia_filter
     # / and \ works on windows, only / on mac tho
     app.source = sourcelocation
-    app.fps = 1 / 30
     app.title = "Sepia filter example by Pengindoramu"
     app.run()

@@ -93,6 +93,5 @@ if __name__ == "__main__":
     app.appliedcv = open_backsub
 
     app.source = sourcelocation
-    app.fps = 1 / 30
     app.title = "Background subtraction example by Pengindoramu"
     app.run()
