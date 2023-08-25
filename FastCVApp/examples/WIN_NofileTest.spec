@@ -7,7 +7,7 @@ basedir = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.g
 print("file location?", basedir)
 
 a = Analysis(
-    ['example_nofile.py'],
+    ['example_nofiletest.py'],
     pathex=[],
     binaries=[],
     datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (basedir + "examples\\creativecommonsmedia\\", "examples\\creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
@@ -30,7 +30,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
-    name='SepiaFilter',
+    name='NofileTest',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

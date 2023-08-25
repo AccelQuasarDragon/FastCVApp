@@ -72,7 +72,7 @@ def identity_func(*args):
         return answerdeque
 
     except Exception as e:
-        print("identity_func subprocess died! ", e, flush=True)
+        print("example_nofile subprocess died! ", e, flush=True)
 
 
 if __name__ == "__main__":
