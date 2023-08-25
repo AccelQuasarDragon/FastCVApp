@@ -87,6 +87,6 @@ if __name__ == "__main__":
     # app.source = "examples/creativecommonsmedia/Elephants Dream charstart2FULL.webm"
     # app.source = "examples/creativecommonsmedia/Elephants Dream charstart2.webm"
     # app.source = "examples/creativecommonsmedia/JoJo-s Bizarre Adventure - S05E25 - DUAL 1080p WEB H.264 -NanDesuKa (NF) (1).1080.mp4"
-    app.fps = 1 / 30
+    app.fps = 30
     app.title = "Identity example by Pengindoramu"
     app.run()

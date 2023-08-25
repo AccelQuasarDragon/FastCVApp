@@ -196,6 +196,8 @@ def open_cvpipeline(*args):
         FCVAWidget_shared_metadata_dictVAR2["seek_req_val" + str(os.getpid())] = 0
         FCVAWidget_shared_metadata_dictVAR2["subprocessREAD" + str(pid)] = True
         FCVAWidget_shared_metadata_dictVAR2["subprocess_cv_load" + str(pid)] = True
+
+        testvar = 0 #remember to delete this
         while True:
             '''
             PLAN:
@@ -221,6 +223,7 @@ def open_cvpipeline(*args):
                 you want to write out the analyzed frames first
                 there is some downtime where kivy reads from a shareddict, in that time I would ideally read/analyze frames (something that doesn't lock the shared dict)
             '''
+            
             #make sure things have started AND this processess is not stopped:
 
             #if source is different, close cap and reopen with new source: also remember this adds time to this already time critical function...
@@ -242,24 +245,43 @@ def open_cvpipeline(*args):
             #on readframe, add a seek to frame
             #from my quick testing takes ~6ms to get to frame, but doesn't matter since everything should wait until all subprocesses seek to that frame
 
-            if "starttime" in FCVAWidget_shared_metadata_dictVAR2 and ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2) and FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)]:
-
+            #now you also have to check for fps ON EVERY RUN.... yikes
+            if "starttime" in FCVAWidget_shared_metadata_dictVAR2 and ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2) and FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)] and "capfps" in FCVAWidget_shared_metadata_dictVAR2.keys():
+                #REMEMBER TO UPDATE FPS:
+                fps = FCVAWidget_shared_metadata_dictVAR2["capfps"]
                 initial_time = time.time()
                 future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*internal_framecount)
                 current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
-                fprint("frame advantage START????", internal_framecount, current_framenumber, future_time-time.time(), time.time())
+                # fprint("frame advantage START????", internal_framecount, current_framenumber, future_time-time.time(), time.time())
                 
                 newwritestart = time.time()
+                
+                if testvar <20:
+                    fprint("need to push data to kivy", 
+                            len(analyzed_deque) == bufferlen, 
+                            (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1), 
+                            max(shared_analyzedKeycountVAR.values()) <= current_framenumber, 
+                            max(shared_analyzedKeycountVAR.values()) == -1, 
+                            "get max of these and is < current_framenumber", shared_analyzedKeycountVAR.values(),
+                            "current_framenumber", current_framenumber, 
+                            "starttime:", FCVAWidget_shared_metadata_dictVAR2["starttime"], 
+                            time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(FCVAWidget_shared_metadata_dictVAR2["starttime"])),
+                            "does fps exist?", fps,
+                            "constructing framenumber", time.time(),
+                            FCVAWidget_shared_metadata_dictVAR2["starttime"]/(1/fps),
+                            (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps)
+                        )
+                    testvar += 1
                 if len(analyzed_deque) == bufferlen and (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1):
                     dictwritetime = time.time()
                     for x in range(bufferlen):
                         shared_analyzedVAR['frame'+str(x)] = analyzed_deque.popleft()
                         shared_analyzedKeycountVAR['key'+str(x)] = analyzed_dequeKEYS.popleft()
-                    fprint("updated shareddict", shared_analyzedKeycountVAR.values())
+                    # fprint("updated shareddict", shared_analyzedKeycountVAR.values())
                 newwriteend = time.time()
                 
                 afteranalyzetimestart = time.time()
-                fprint("why is analyze not running", len(raw_deque), len(raw_deque) > 0, len(analyzed_deque) == 0)
+                # fprint("why is analyze not running", len(raw_deque), len(raw_deque) > 0, len(analyzed_deque) == 0)
                 if len(raw_deque) >= bufferlen and len(analyzed_deque) == 0:
                     #give the deque to the cv func
                     #cv func returns a deque of frames
@@ -273,7 +295,7 @@ def open_cvpipeline(*args):
                         raw_dequeKEYS, 
                         force_monotonic_increasing)
                     force_monotonic_increasing += bufferlen  
-                    fprint("resultdeque timing (appliedcv)", time.time() - rtime,current_framenumber)
+                    # fprint("resultdeque timing (appliedcv)", time.time() - rtime,current_framenumber)
                     current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
                     otherhalf = time.time()
 
@@ -286,7 +308,7 @@ def open_cvpipeline(*args):
                             result_compressed = blosc2.compress(result_compressed,filter=blosc2.Filter.SHUFFLE, codec=blosc2.Codec.LZ4)
                             analyzed_deque.append(result_compressed)
                             analyzed_dequeKEYS.append(raw_dequeKEYS.popleft())
-                    fprint("analyzed keys???", [analyzed_dequeKEYS[x] for x in range(len(analyzed_dequeKEYS))], current_framenumber)
+                    # fprint("analyzed keys???", [analyzed_dequeKEYS[x] for x in range(len(analyzed_dequeKEYS))], current_framenumber)
                 afteranalyzetime = time.time()
                 # fprint("trying to analyze correct?")
 
@@ -307,9 +329,9 @@ def open_cvpipeline(*args):
                     #hoping this resets the keycounts so that frames get updated to shared_analyzed deque:
                     for keyvar in shared_analyzedKeycountVAR.keys():
                         shared_analyzedKeycountVAR[keyvar] = -1
-                    fprint("CLEARED deques", len(raw_deque), len(raw_dequeKEYS), len(analyzed_deque), len(analyzed_dequeKEYS))
+                    # fprint("CLEARED deques", len(raw_deque), len(raw_dequeKEYS), len(analyzed_deque), len(analyzed_dequeKEYS))
                     #reset instance count to be at the right spot where internal_framecount is:
-                    fprint("internal framecount to instance", FCVAWidget_shared_metadata_dictVAR2["seek_req_val"],internal_framecount, maxpartitions, bufferlen,  instance_count)
+                    # fprint("internal framecount to instance", FCVAWidget_shared_metadata_dictVAR2["seek_req_val"],internal_framecount, maxpartitions, bufferlen,  instance_count)
 
                 if len(raw_deque) <= int(bufferlen/2) and FCVAWidget_shared_metadata_dictVAR2["subprocessREAD" + str(pid)]:
                     #get the right framecount:
@@ -345,7 +367,7 @@ def open_cvpipeline(*args):
                     # fprint("the for loop structure is slow...", time.time()-timeoog)
             else:
                 import time
-                fprint("what's going on", "starttime" in FCVAWidget_shared_metadata_dictVAR2, ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2), FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)] )
+                # fprint("what's going on", "starttime" in FCVAWidget_shared_metadata_dictVAR2, ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2), FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)] )
                 time.sleep(1)
     except Exception as e: 
         print("open_appliedcv died!", e)
@@ -406,7 +428,7 @@ class FCVA:
                 #sanity checks
                 if not hasattr(self, "fps"):
                     # default to 30fps, else set blit buffer speed to 1/30 sec
-                    self.fps = 1 / 30
+                    self.fps = 30
                 if not hasattr(self, "title"):
                     kvinit_dict[
                         "title"
@@ -656,7 +678,6 @@ class FCVA:
                 elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
                     fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
                     self.CV_on()
-                
 
             def updateSliderData(self, *args):
                 '''
@@ -680,7 +701,9 @@ class FCVA:
                 FCVAWidget_shared_metadata_dictVAR["capfps"] = capfps
                 self.fps = FCVAWidget_shared_metadata_dictVAR["capfps"]
                 FCVAWidget_shared_metadata_dictVAR["maxseconds"] = maxseconds
-                print( "maxseconds", maxseconds )
+                fprint( "maxseconds", maxseconds )
+                # fprint("idslist", self.ids)
+                self.ids['StartScreenTimerID'].text = self.updateSliderElapsedTime(self.ids['vidsliderID'].value)
 
             def updateSliderElapsedTime(self, *args):
                 # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
@@ -703,7 +726,7 @@ class FCVA:
                 self.updateSliderData(self.FCVAWidget_shared_metadata_dict)
                 #have a popup saying it's loaded or not:
                 self.textpopup(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"])
-            
+
             # https://stackoverflow.com/questions/54501099/how-to-run-a-method-on-the-exit-of-a-kivy-app
             def textpopup(self, title='', text=''):
                 """Open the pop-up with the name.
@@ -762,6 +785,9 @@ class FCVA:
                         self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     fprint("BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC REGULAR")
+                #https://stackoverflow.com/a/45163385
+                fprint("set starttime to:", self.FCVAWidget_shared_metadata_dict["starttime"], time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(self.FCVAWidget_shared_metadata_dict["starttime"]))  )
+                #TL:DR, IS SELF.FCVAWidget_shared_metadata_dict DIFFERENT FROM FCVAWidget_shared_metadata_dict ????, they should be the same since I pass self.FCVAWidget_shared_metadata_dict to FCVAWidget_SubprocessInit, it might be different only when I call FCVAWidget_shared_metadata_dict since that is inherited from FCVAKivyBase which calls FCVA.FCVAWidgetInit
 
             def CV_off(self):
                 self.ids['StartScreenButtonID'].text = "\U000F040A" #this is play
@@ -951,6 +977,7 @@ class FCVA:
             id: StartScreenButtonID
             text: 'waiting for cv function/mediapipe to load'
         Label:
+            id: StartScreenTimerID
             # text: str(vidsliderID.value) #convert slider label to a time
             text: root.updateSliderElapsedTime(vidsliderID.value)
 """
