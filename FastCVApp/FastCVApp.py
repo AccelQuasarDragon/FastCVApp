@@ -247,7 +247,7 @@ def open_cvpipeline(*args):
                 initial_time = time.time()
                 future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*internal_framecount)
                 current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
-                # fprint("frame advantage START????", os.getpid(), internal_framecount, current_framenumber, future_time-time.time(), time.time())
+                fprint("frame advantage START????", internal_framecount, current_framenumber, future_time-time.time(), time.time())
                 
                 newwritestart = time.time()
                 if len(analyzed_deque) == bufferlen and (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1):
@@ -259,7 +259,7 @@ def open_cvpipeline(*args):
                 newwriteend = time.time()
                 
                 afteranalyzetimestart = time.time()
-                # fprint("why is analyze not running", len(raw_deque), len(raw_deque) > 0, len(analyzed_deque) == 0)
+                fprint("why is analyze not running", len(raw_deque), len(raw_deque) > 0, len(analyzed_deque) == 0)
                 if len(raw_deque) >= bufferlen and len(analyzed_deque) == 0:
                     #give the deque to the cv func
                     #cv func returns a deque of frames
@@ -288,6 +288,7 @@ def open_cvpipeline(*args):
                             analyzed_dequeKEYS.append(raw_dequeKEYS.popleft())
                     fprint("analyzed keys???", [analyzed_dequeKEYS[x] for x in range(len(analyzed_dequeKEYS))], current_framenumber)
                 afteranalyzetime = time.time()
+                # fprint("trying to analyze correct?")
 
                 #update info for seeking
                 if "seek_req_val" in FCVAWidget_shared_metadata_dictVAR2 and FCVAWidget_shared_metadata_dictVAR2["seek_req_val"] != FCVAWidget_shared_metadata_dictVAR2["seek_req_val" + str(os.getpid())]:
