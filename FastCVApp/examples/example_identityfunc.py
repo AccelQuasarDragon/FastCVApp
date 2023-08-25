@@ -76,6 +76,8 @@ def identity_func(*args):
 
 
 if __name__ == "__main__":
+    import multiprocessing 
+    multiprocessing.freeze_support()
     import FastCVApp
     app = FastCVApp.FCVA()
 
