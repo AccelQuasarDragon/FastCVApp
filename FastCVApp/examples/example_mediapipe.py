@@ -158,7 +158,7 @@ if __name__ == "__main__":
     import FastCVApp
     app = FastCVApp.FCVA()
     app.appliedcv = apply_mediapipe_func
-    app.colorfmt = "rgb"
+    # app.colorfmt = "rgba" #for testing
 
     # # / and \ works on windows, only / on mac tho 
     app.source = sourcelocation

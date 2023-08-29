@@ -197,7 +197,7 @@ def open_cvpipeline(*args):
         FCVAWidget_shared_metadata_dictVAR2["subprocessREAD" + str(pid)] = True
         FCVAWidget_shared_metadata_dictVAR2["subprocess_cv_load" + str(pid)] = True
 
-        testvar = 0 #remember to delete this
+        # testvar = 0 #remember to delete this
         while True:
             '''
             PLAN:
@@ -256,22 +256,22 @@ def open_cvpipeline(*args):
                 
                 newwritestart = time.time()
                 
-                if testvar <20:
-                    fprint("need to push data to kivy", 
-                            len(analyzed_deque) == bufferlen, 
-                            (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1), 
-                            max(shared_analyzedKeycountVAR.values()) <= current_framenumber, 
-                            max(shared_analyzedKeycountVAR.values()) == -1, 
-                            "get max of these and is < current_framenumber", shared_analyzedKeycountVAR.values(),
-                            "current_framenumber", current_framenumber, 
-                            "starttime:", FCVAWidget_shared_metadata_dictVAR2["starttime"], 
-                            time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(FCVAWidget_shared_metadata_dictVAR2["starttime"])),
-                            "does fps exist?", fps,
-                            "constructing framenumber", time.time(),
-                            FCVAWidget_shared_metadata_dictVAR2["starttime"]/(1/fps),
-                            (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps)
-                        )
-                    testvar += 1
+                # if testvar <20:
+                #     fprint("need to push data to kivy", 
+                #             len(analyzed_deque) == bufferlen, 
+                #             (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1), 
+                #             max(shared_analyzedKeycountVAR.values()) <= current_framenumber, 
+                #             max(shared_analyzedKeycountVAR.values()) == -1, 
+                #             "get max of these and is < current_framenumber", shared_analyzedKeycountVAR.values(),
+                #             "current_framenumber", current_framenumber, 
+                #             "starttime:", FCVAWidget_shared_metadata_dictVAR2["starttime"], 
+                #             time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(FCVAWidget_shared_metadata_dictVAR2["starttime"])),
+                #             "does fps exist?", fps,
+                #             "constructing framenumber", time.time(),
+                #             FCVAWidget_shared_metadata_dictVAR2["starttime"]/(1/fps),
+                #             (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps)
+                #         )
+                #     testvar += 1
                 if len(analyzed_deque) == bufferlen and (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1):
                     dictwritetime = time.time()
                     for x in range(bufferlen):
@@ -578,7 +578,16 @@ class FCVA:
         import datetime
         from functools import partial
         import inspect, os
+        from kivy.uix.textinput import TextInput
 
+        class FCVAPopup(Popup):
+            def dismiss(self, *args, **kwargs):
+                #do the source class event
+                super().dismiss(*args, **kwargs)
+                #I need to send the textinput widget and save to the correct instance of FCVAWidget.FCVAWidget_shared_metadata_dict["colorfmt"]
+                self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"] = self.fcvapopuptextinputREF.text
+                print("set data on fcva widget", self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"])
+                
         class FCVAWidget(BoxLayout):
 
             def __init__(self, *args, **kwargs):
@@ -618,44 +627,12 @@ class FCVA:
                 else: #default to 3 and say so
                     self.FCVAWidget_shared_metadata_dict["bufferwaitVAR2"] = 3
                     fprint(f"bufferwaitVAR2 defaulted to self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']")
-                #hint, add colorfmtval here to self.FCVAWidget_shared_metadata_dict and also update it on filedrop #3 places to update: on initial load, on filedrop, here (FCVA widgetinit)
-                #these notes now outdated, all of it is here: https://github.com/ShootingStarDragon/213d/issues/280
-                '''
-                #3 places to update colorfmt:
-                    on initial load,
-                    on filedrop
-                    FCVA widgetinit
-                let's just understand behavior:
-                options:
-                2 datas:
-                    source
-                    colorfmt
 
-                4 options (redone):
-                    ALL I NEED TO DO IS THIS:
-                    2 give colorfmt (DOES NOT WORK ATM)
-                        user should keep track and that's it
-                        update on load, 
-                            update on widget init(continuation of load)
-                        update on filedrop
-                        
+                # well, change of plans, opencv can't tell you the colorspace:
+                # so just blindly believe the user
+                # https://stackoverflow.com/a/2137355
+                # As rcv said, there is no method to programmatically detect the color space by inspecting the three color channels, unless you have a priori knowledge of the image content (e.g., there is a marker in the image whose color is known). If you will be accepting images from unknown sources, you must allow the user to specify the color space of their image. A good default would be to assume RGB.
 
-                    
-                    1 give source (WORKS)
-                        also can extract colorfmt, not possible,
-                        so then assume rgb
-                    
-                    3 give source and colorfmt (doesn't matter anymore)
-                        what happens if they conflict?
-                        for example, u want to load a video and display in a different colorfmt
-                        just give a warning saying colorfmt does not match source colorfmt, if u know what you are doing disregard
-                    4 give none (WORKS)
-
-                well, change of plans, opencv can't tell you the colorspace:
-                so just blindly belive the user
-                https://stackoverflow.com/a/2137355
-                As rcv said, there is no method to programmatically detect the color space by inspecting the three color channels, unless you have a priori knowledge of the image content (e.g., there is a marker in the image whose color is known). If you will be accepting images from unknown sources, you must allow the user to specify the color space of their image. A good default would be to assume RGB.
-                '''
                 #if kvinit_dictVAR2 has colorfmt, update:
                 if "colorfmt" in self.kvinit_dictVAR2:
                     self.FCVAWidget_shared_metadata_dict["colorfmt"] = self.kvinit_dictVAR2["colorfmt"]
@@ -785,9 +762,20 @@ class FCVA:
                 """
                 box = BoxLayout(orientation='vertical')
                 box.add_widget(Label(text=text, text_size= (400, None)))
+                
+                titlewidget = Label(text="Color format of video", text_size= (400, None))
+                box.add_widget(titlewidget)
+                
+                textinputwidget = TextInput(text='bgr', multiline=False)
+                box.add_widget(textinputwidget)
+                
+                popup = FCVAPopup(title=title, content=box, size_hint=(None, None), size=(600, 300))
+                #give popup the reference to textinput and FCVAWidget
+                popup.fcvapopuptextinputREF = textinputwidget
+                popup.fcvaref = self
+
                 mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
                 box.add_widget(mybuttonregret)
-                popup = Popup(title=title, content=box, size_hint=(None, None), size=(600, 300))
                 mybuttonregret.bind(on_release=popup.dismiss)
                 popup.open()
 
@@ -1006,7 +994,6 @@ class FCVA:
         FCVAWidget.appliedcv = args[4]
         FCVAWidget.bufferwaitVAR2 = args[5]
         FCVAWidget.kvinit_dictVAR2 = args[6]
-
 
         # BACKSLASHES NOT COMPATIBLE WITH FSTRINGS: https://stackoverflow.com/questions/66173070/how-to-put-backslash-escape-sequence-into-f-string SOLUTION IS TO DO THINGS IN PYTHON SIDE, (set id.text values, etc)
         FCVAWidget_KV = f"""
