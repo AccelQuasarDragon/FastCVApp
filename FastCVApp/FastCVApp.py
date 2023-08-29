@@ -761,7 +761,8 @@ class FCVA:
                 :rtype: None
                 """
                 box = BoxLayout(orientation='vertical')
-                box.add_widget(Label(text=text, text_size= (400, None)))
+                textlabel = Label(text=text, text_size= (None,None))
+                box.add_widget(textlabel)
                 
                 titlewidget = Label(text="Color format of video", text_size= (400, None))
                 box.add_widget(titlewidget)
@@ -769,7 +770,7 @@ class FCVA:
                 textinputwidget = TextInput(text='bgr', multiline=False)
                 box.add_widget(textinputwidget)
                 
-                popup = FCVAPopup(title=title, content=box, size_hint=(None, None), size=(600, 300))
+                popup = FCVAPopup(title=title, content=box, size_hint=(0.5, 0.5))
                 #give popup the reference to textinput and FCVAWidget
                 popup.fcvapopuptextinputREF = textinputwidget
                 popup.fcvaref = self
@@ -778,6 +779,9 @@ class FCVA:
                 box.add_widget(mybuttonregret)
                 mybuttonregret.bind(on_release=popup.dismiss)
                 popup.open()
+                #adjust the textlabel text_size after widget is displayed
+                textlabel.text_size = (0.9*popup.width, textlabel.height)
+                print("textlabel sizes", textlabel.width, textlabel.height, popup.width)
 
             def seektime(self):
                 '''
