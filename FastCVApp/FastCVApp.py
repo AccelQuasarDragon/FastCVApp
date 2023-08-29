@@ -599,7 +599,6 @@ class FCVA:
                 self.fcvaref.FCVAWidget_shared_metadata_dict["fdimension"] = [int(intvar) for intvar in self.resolutiontextinputREF.text.split(",")]
                 fprint("set data on fcva widget", self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"], self.fcvaref.FCVAWidget_shared_metadata_dict["fdimension"])
                 
-                
         class FCVAWidget(BoxLayout):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
@@ -694,25 +693,49 @@ class FCVA:
                 self.ids['StartScreenButtonID'].text = "\U000F040A" #this is play
 
             def on_touch_down(self, touch): #overrides touchdown for entire widget
-                self.ids['vidsliderID'].on_touch_down(touch) #self is automatically passed i think, this is to make sure the slider keeps recieving commands
-                #check if slider is touched as per: https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy and per https://kivy.org/doc/stable/guide/events.html#dispatching-a-property-event
-                if self.ids['vidsliderID'].collide_point(*touch.pos):
-                    # fprint("touched????", touch)
-                    self.CV_off()
-                self.FCVAWidget_shared_metadata_dict["oldsliderpos"] = self.ids['vidsliderID'].value
+                #make sure cv is loaded before doing anything:
+                if len(self.subprocess_list) == self.cvpartitions and len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions:
+                    self.ids['vidsliderID'].on_touch_down(touch) #self is automatically passed i think, this is to make sure the slider keeps recieving commands
+                    #check if slider is touched as per: https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy and per https://kivy.org/doc/stable/guide/events.html#dispatching-a-property-event
+                    if self.ids['vidsliderID'].collide_point(*touch.pos):
+                        # fprint("touched????", touch)
+                        self.CV_off()
+                    self.FCVAWidget_shared_metadata_dict["oldsliderpos"] = self.ids['vidsliderID'].value
+                else:
+                    #popup warning
+                    box = BoxLayout(orientation='vertical')
+                    popup = Popup(title="Please wait while CV is loading...", content=box, size_hint=(0.5, 0.5))
+
+                    mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
+                    box.add_widget(mybuttonregret)
+                    mybuttonregret.bind(on_release=popup.dismiss)
+                    popup.open()
+
 
             def on_touch_up(self, touch):
-                #since I catch all the events I must send it to the widgets with touchup events:
-                self.ids['vidsliderID'].on_touch_up(touch)
-                # https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy
-                #if you release on the slider OR the slider value was moved (just checking values doesnt account for leaving it on the same frame):
-                fprint("what are values?", self.FCVAWidget_shared_metadata_dict["oldsliderpos"], self.ids['vidsliderID'].value)
-                #button takes precedence:
-                if self.ids['StartScreenButtonID'].collide_point(*touch.pos):
-                    self.toggleCV()
-                elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
-                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
-                    self.CV_on()
+                #make sure cv is loaded before doing anything:
+                if len(self.subprocess_list) == self.cvpartitions and len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions:
+                    #since I catch all the events I must send it to the widgets with touchup events:
+                    self.ids['vidsliderID'].on_touch_up(touch)
+                    # https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy
+                    #if you release on the slider OR the slider value was moved (just checking values doesnt account for leaving it on the same frame):
+                    fprint("what are values?", self.FCVAWidget_shared_metadata_dict["oldsliderpos"], self.ids['vidsliderID'].value)
+                    #button takes precedence:
+                    if self.ids['StartScreenButtonID'].collide_point(*touch.pos):
+                        self.toggleCV()
+                    elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
+                        fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
+                        self.CV_on()
+                else:
+                    #popup warning
+                    box = BoxLayout(orientation='vertical')
+                    popup = Popup(title="Please wait while CV is loading...", content=box, size_hint=(0.5, 0.5))
+
+                    mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
+                    box.add_widget(mybuttonregret)
+                    mybuttonregret.bind(on_release=popup.dismiss)
+                    popup.open()
+
 
             def updateSliderData(self, *args):
                 '''
@@ -757,14 +780,24 @@ class FCVA:
                     return ""
 
             def _on_file_drop(self, window, file_path, x, y):
-                print(file_path, str(file_path, encoding='utf-8'))
-                self.FCVAWidget_shared_metadata_dict["source"] = str(file_path, encoding='utf-8')
-                self.updateSliderData(self.FCVAWidget_shared_metadata_dict)
-                #have a popup saying it's loaded or not:
-                self.textpopup(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"])
+                if len(self.subprocess_list) == self.cvpartitions and len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions:
+                    print(file_path, str(file_path, encoding='utf-8'))
+                    self.FCVAWidget_shared_metadata_dict["source"] = str(file_path, encoding='utf-8')
+                    self.updateSliderData(self.FCVAWidget_shared_metadata_dict)
+                    #have a popup saying it's loaded or not:
+                    self.textpopupinstance(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"])
+                else:
+                    #popup warning
+                    box = BoxLayout(orientation='vertical')
+                    popup = Popup(title="Please wait while CV is loading...", content=box, size_hint=(0.5, 0.5))
+
+                    mybuttonregret = Button(text="Ok", size_hint=(0.5, 0.5))
+                    box.add_widget(mybuttonregret)
+                    mybuttonregret.bind(on_release=popup.dismiss)
+                    popup.open()
 
             # https://stackoverflow.com/questions/54501099/how-to-run-a-method-on-the-exit-of-a-kivy-app
-            def textpopup(self, title='', text=''):
+            def textpopupinstance(self, title='', text=''):
                 """Open the pop-up with the name.
 
                 :param title: title of the pop-up to open
@@ -789,7 +822,7 @@ class FCVA:
                 textinputwidget2 = TextInput(text='1920, 1080', multiline=False)
                 box.add_widget(textinputwidget2)
                 
-                popup = FCVAPopup(title=title, content=box, size_hint=(0.5, 0.5))
+                popup = FCVAPopup(title=title, content=box, size_hint=(0.8, 0.5))
                 #give popup the reference to textinput and FCVAWidget
                 popup.fcvapopuptextinputREF = textinputwidget
                 popup.resolutiontextinputREF = textinputwidget2
