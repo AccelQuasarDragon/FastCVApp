@@ -55,10 +55,10 @@ else:
         solution = [os.path.dirname(pathobj) for pathobj in solution]
         if len(solution) != 1:
             #warn user if multiple paths detected or none:
-            print("there should only be one path to FastCVApp/FastCVApp.py, check your env", solution, flush=True)
+            print("check your env, there should only be one path to FastCVApp/FastCVApp.py", solution, flush=True)
         for solutionitem in solution:
             sys.path.append(solutionitem)
-        print("appended solution!",sys.path)
+        # print("appended solution!",sys.path)
 
 from FCVAutils import FCVA_update_resources
 #udpate paths here
@@ -148,7 +148,7 @@ def apply_mediapipe_func(*args): #basicmp
         import traceback
         print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
 
-print("location of file base?", __file__, "name vs main", __name__ )
+# print("location of file base?", __file__, "name vs main", __name__ )
 
 if __name__ == "__main__":
     import multiprocessing 

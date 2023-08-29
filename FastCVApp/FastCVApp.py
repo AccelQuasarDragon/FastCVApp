@@ -121,7 +121,7 @@ def open_cvpipeline(*args):
         # fprint("is it mediapipe or mp? (it's the actual modulename, nice)", "mediapipe" in sys.modules, "mp" in sys.modules)
         modulename = 'mediapipe' #this implies mediapipe was already imported in the actual sourcecode tho
         if modulename in sys.modules:
-            print('You have imported {} module, setting up landmarker'.format(modulename))
+            fprint('{} module detected, setting up landmarker'.format(modulename))
 
             #init mediapipe here so it spawns the right amt of processes
             import mediapipe as mp
@@ -133,7 +133,7 @@ def open_cvpipeline(*args):
             # from pathlib import Path
 
             # print("file location?", Path(__file__).absolute())
-            print("cwd???3", os.getcwd())
+            # print("cwd???3", os.getcwd())
             #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
             # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
             from sys import platform
@@ -156,8 +156,6 @@ def open_cvpipeline(*args):
                     # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
                     tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
-
-            fprint("what is getcwd??", os.getcwd())
             #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
 
 
@@ -414,7 +412,7 @@ class FCVA:
                             fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
                         if len(solution) != 1:
                             #warn user if multiple paths detected or none:
-                            fprint("there should only be one path to", self.source," check your env", solution)
+                            fprint("check your env, there should only be one path to source:", self.source, "possible sources:", solution)
                         # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
                         self.source = solution[0].resolve().__str__()
                         if not os.path.isfile(self.source):
@@ -528,8 +526,7 @@ class FCVA:
         subprocess_listVAR                  = args[7]
         FCVAWidget_shared_metadata_dictVAR  = args[8]
         # fprint("check args for FCVAWidget_SubprocessInit", args)
-        fprint("bufferwaitVAR2 in right dict??", FCVAWidget_shared_metadata_dictVAR["bufferwaitVAR2"])
-
+        
         for x in range(cvpartitionsVAR):
             #init analyzed/keycount dicts
             shared_analyzedA = shared_mem_managerVAR.dict()
@@ -613,7 +610,7 @@ class FCVA:
                     if __name__ == "FastCVApp":
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
-                        print("FCVA FCVAWidget __init__ detected no multiprocessing, importing as such", flush=True)
+                        fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")
                         # import traceback
                         # print("full exception (YOU CAN IGNORE THIS, just testing if multiprocess/multiprocessing has already been imported)", "".join(traceback.format_exception(*sys.exc_info())))
                 
@@ -629,7 +626,6 @@ class FCVA:
                     self.FCVAWidget_shared_metadata_dict["source"] = self.source
                     #sliderdata needs to udpate slider so just schedule for 1st valid frame with clock 0
                     Clock.schedule_once(partial(self.updateSliderData,self.FCVAWidget_shared_metadata_dict), 0)
-                    fprint("schedule once???")
                 elif self.source == None:
                     self.FCVAWidget_shared_metadata_dict["source"] = self.source
                 if hasattr(self, "bufferwaitVAR2"):
@@ -646,10 +642,10 @@ class FCVA:
                 #if kvinit_dictVAR2 has colorfmt, update:
                 if "colorfmt" in self.kvinit_dictVAR2:
                     self.FCVAWidget_shared_metadata_dict["colorfmt"] = self.kvinit_dictVAR2["colorfmt"]
-                    print("check colorfmt", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.kvinit_dictVAR2["colorfmt"])
+                    # fprint("check colorfmt", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.kvinit_dictVAR2["colorfmt"])
                 else:
                     self.FCVAWidget_shared_metadata_dict["colorfmt"] = "bgr"
-                    print("no colorfmt, automatically set to bgr", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.FCVAWidget_shared_metadata_dict["colorfmt"])
+                    # fprint("no colorfmt, automatically set to bgr", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.FCVAWidget_shared_metadata_dict["colorfmt"])
                 if "fdimension" in self.kvinit_dictVAR2:
                     self.FCVAWidget_shared_metadata_dict["fdimension"] = self.kvinit_dictVAR2["fdimension"]
 
@@ -750,7 +746,7 @@ class FCVA:
                 caplength = int(captest.get(cv2.CAP_PROP_FRAME_COUNT))
                 #update slidermax so that u have a 1 to 1 relationship between sliderval and frame:
                 self.ids['vidsliderID'].max = caplength
-                fprint("what is caplenthg?", caplength)
+                # fprint("what is caplenthg?", caplength)
                 capfps = captest.get(cv2.CAP_PROP_FPS)
                 self.spf = (1/capfps)
                 captest.release()
@@ -759,7 +755,7 @@ class FCVA:
                 FCVAWidget_shared_metadata_dictVAR["capfps"] = capfps
                 self.fps = FCVAWidget_shared_metadata_dictVAR["capfps"]
                 FCVAWidget_shared_metadata_dictVAR["maxseconds"] = maxseconds
-                fprint( "maxseconds", maxseconds )
+                # fprint( "maxseconds", maxseconds )
                 # fprint("idslist", self.ids)
                 self.ids['StartScreenTimerID'].text = self.updateSliderElapsedTime(self.ids['vidsliderID'].value)
                 #hint, add colorfmtval here to self.FCVAWidget_shared_metadata_dict and also update it on filedrop
