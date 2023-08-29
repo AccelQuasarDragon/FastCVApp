@@ -159,6 +159,7 @@ if __name__ == "__main__":
     app = FastCVApp.FCVA()
     app.appliedcv = apply_mediapipe_func
     app.colorfmt = "rgb" #for testing
+    app.fdimension = [1280, 720] #for testing
 
     # # / and \ works on windows, only / on mac tho 
     app.source = sourcelocation

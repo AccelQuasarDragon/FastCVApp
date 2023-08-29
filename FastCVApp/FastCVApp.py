@@ -349,8 +349,12 @@ def open_cvpipeline(*args):
                         # fprint("ret and internal_framecount in framelist", ret, internal_framecount, framelist, ret and (internal_framecount in framelist))
                         if ret and (internal_framecount in framelist):
                             # i might not be picking up a pose because the frame is being read upside down, flip it first before analyzing with mediapipe
+                            framewidth = FCVAWidget_shared_metadata_dictVAR2["fdimension"][0]
+                            frameheight = FCVAWidget_shared_metadata_dictVAR2["fdimension"][1] 
                             # framedata = cv2.resize(framedata, (1280, 720))
-                            framedata = cv2.resize(framedata, (1920, 1080))
+                            fprint("dimension types cv", type(framewidth), framewidth, type(frameheight), frameheight)
+                            framedata = cv2.resize(framedata, (framewidth, frameheight))
+                            # framedata = cv2.resize(framedata, (1920, 1080))
                             # framedata = cv2.resize(framedata, (640, 480))
                             # framedata = cv2.flip(framedata, 0) 
                             # framedata = cv2.cvtColor(framedata, cv2.COLOR_RGB2BGR)
@@ -443,6 +447,12 @@ class FCVA:
                     print(
                         "FCVA.appliedcv is currently None. Not starting the CV subprocess."
                     )
+                if hasattr(self, "fdimension"):
+                    kvinit_dict["fdimension"] = self.fdimension
+                else:
+                    #width then height
+                    kvinit_dict["fdimension"] = [1920, 1080]
+
 
                 bufferlen = 10
                 if hasattr(self, "cvpartitions"):
@@ -586,10 +596,11 @@ class FCVA:
                 super().dismiss(*args, **kwargs)
                 #I need to send the textinput widget and save to the correct instance of FCVAWidget.FCVAWidget_shared_metadata_dict["colorfmt"]
                 self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"] = self.fcvapopuptextinputREF.text
-                print("set data on fcva widget", self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"])
+                self.fcvaref.FCVAWidget_shared_metadata_dict["fdimension"] = [int(intvar) for intvar in self.resolutiontextinputREF.text.split(",")]
+                fprint("set data on fcva widget", self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"], self.fcvaref.FCVAWidget_shared_metadata_dict["fdimension"])
+                
                 
         class FCVAWidget(BoxLayout):
-
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 #when widget is init start up the subprocesses
@@ -640,6 +651,8 @@ class FCVA:
                 else:
                     self.FCVAWidget_shared_metadata_dict["colorfmt"] = "bgr"
                     print("no colorfmt, automatically set to bgr", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.FCVAWidget_shared_metadata_dict["colorfmt"])
+                if "fdimension" in self.kvinit_dictVAR2:
+                    self.FCVAWidget_shared_metadata_dict["fdimension"] = self.kvinit_dictVAR2["fdimension"]
 
                 # Clock.schedule_once(self.updatefont, 0)
                 self.is_cv_loaded = Clock.schedule_interval(self.updatefont_subprocesscheck, 1)
@@ -769,10 +782,17 @@ class FCVA:
                 
                 textinputwidget = TextInput(text='bgr', multiline=False)
                 box.add_widget(textinputwidget)
+
+                titlewidget2 = Label(text="frame resolution", text_size= (400, None))
+                box.add_widget(titlewidget2)
+                
+                textinputwidget2 = TextInput(text='1920, 1080', multiline=False)
+                box.add_widget(textinputwidget2)
                 
                 popup = FCVAPopup(title=title, content=box, size_hint=(0.5, 0.5))
                 #give popup the reference to textinput and FCVAWidget
                 popup.fcvapopuptextinputREF = textinputwidget
+                popup.resolutiontextinputREF = textinputwidget2
                 popup.fcvaref = self
 
                 mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
@@ -882,7 +902,10 @@ class FCVA:
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:
                             frame = blosc2.decompress(frame)
-                            frame = np.frombuffer(frame, np.uint8).copy().reshape(1080, 1920, 3)
+                            framewidth = self.FCVAWidget_shared_metadata_dict["fdimension"][0]
+                            frameheight = self.FCVAWidget_shared_metadata_dict["fdimension"][1]
+                            fprint("dimension types blitting", type(framewidth), framewidth, type(frameheight), frameheight)
+                            frame = np.frombuffer(frame, np.uint8).copy().reshape(frameheight, framewidth, 3)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 4)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(480, 640, 3)
@@ -957,10 +980,12 @@ class FCVA:
                                 # print("blitting to texture index:", self.index)
 
                                 ggtime = time.time()
-                                if not hasattr(self, "texture1"):
+                                #make sure texture exists AND it matches the correct size, otherwise delete old texture and create anew
+                                if not hasattr(self, "texture1") or (self.texture1.size[0] != framewidth and self.texture1.size[1] != frameheight) :
                                     self.texture1 = Texture.create(
                                         size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
-                                    fprint("created texture!!!!")
+                                    fprint("created texture!!!!", self.texture1.size)
+                                fprint("texture size", self.texture1.size)
                                 # https://stackoverflow.com/questions/51546327/in-kivy-is-there-a-way-to-dynamically-change-the-shape-of-a-texture
                                 self.texture1.add_reload_observer(self.populate_texture)
                                 self.populate_texture(self.texture1, buf, self.colorfmtval, "ubyte")
