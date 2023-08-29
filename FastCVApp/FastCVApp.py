@@ -630,16 +630,30 @@ class FCVA:
                     source
                     colorfmt
 
-                4 options:
-                    1 give source (WORKS)
-                        also can extract colorfmt
+                4 options (redone):
+                    ALL I NEED TO DO IS THIS:
                     2 give colorfmt (DOES NOT WORK ATM)
-                        will work, but no source
-                    3 give source and colorfmt
+                        user should keep track and that's it
+                        update on load, 
+                            update on widget init(continuation of load)
+                        update on filedrop
+                        
+
+                    
+                    1 give source (WORKS)
+                        also can extract colorfmt, not possible,
+                        so then assume rgb
+                    
+                    3 give source and colorfmt (doesn't matter anymore)
                         what happens if they conflict?
                         for example, u want to load a video and display in a different colorfmt
                         just give a warning saying colorfmt does not match source colorfmt, if u know what you are doing disregard
                     4 give none (WORKS)
+
+                well, change of plans, opencv can't tell you the colorspace:
+                so just blindly belive the user
+                https://stackoverflow.com/a/2137355
+                As rcv said, there is no method to programmatically detect the color space by inspecting the three color channels, unless you have a priori knowledge of the image content (e.g., there is a marker in the image whose color is known). If you will be accepting images from unknown sources, you must allow the user to specify the color space of their image. A good default would be to assume RGB.
                 '''
 
                 # Clock.schedule_once(self.updatefont, 0)
