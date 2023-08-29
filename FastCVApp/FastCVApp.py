@@ -791,7 +791,7 @@ class FCVA:
                     box = BoxLayout(orientation='vertical')
                     popup = Popup(title="Please wait while CV is loading...", content=box, size_hint=(0.5, 0.5))
 
-                    mybuttonregret = Button(text="Ok", size_hint=(0.5, 0.5))
+                    mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
                     box.add_widget(mybuttonregret)
                     mybuttonregret.bind(on_release=popup.dismiss)
                     popup.open()
@@ -822,7 +822,7 @@ class FCVA:
                 textinputwidget2 = TextInput(text='1920, 1080', multiline=False)
                 box.add_widget(textinputwidget2)
                 
-                popup = FCVAPopup(title=title, content=box, size_hint=(0.8, 0.5))
+                popup = FCVAPopup(title=title, content=box, size_hint=(0.8, 0.8))
                 #give popup the reference to textinput and FCVAWidget
                 popup.fcvapopuptextinputREF = textinputwidget
                 popup.resolutiontextinputREF = textinputwidget2
