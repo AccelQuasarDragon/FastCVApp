@@ -41,7 +41,7 @@ def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = Fa
 				pathoption = list(pathlib.Path(pathstr).rglob(os.path.join(*sourcelocationVAR)))
 				testfilter = [pathselection for pathselection in pathoption if "var" not in pathselection.resolve().__str__() or ".app" not in pathselection.resolve().__str__()]
 				# print("pathoption fcvautils", pathoption)
-				print("testfilter fcvautils", os.getpid(), testfilter)
+				# print("testfilter fcvautils", os.getpid(), testfilter)
 				if testfilter != []:
 					# solution.append(*testfilter)
 					solution += testfilter
