@@ -618,6 +618,29 @@ class FCVA:
                 else: #default to 3 and say so
                     self.FCVAWidget_shared_metadata_dict["bufferwaitVAR2"] = 3
                     fprint(f"bufferwaitVAR2 defaulted to self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']")
+                #hint, add colorfmtval here to self.FCVAWidget_shared_metadata_dict and also update it on filedrop #3 places to update: on initial load, on filedrop, here (FCVA widgetinit)
+                '''
+                #3 places to update colorfmt:
+                    on initial load,
+                    on filedrop
+                    FCVA widgetinit
+                let's just understand behavior:
+                options:
+                2 datas:
+                    source
+                    colorfmt
+
+                4 options:
+                    1 give source (WORKS)
+                        also can extract colorfmt
+                    2 give colorfmt (DOES NOT WORK ATM)
+                        will work, but no source
+                    3 give source and colorfmt
+                        what happens if they conflict?
+                        for example, u want to load a video and display in a different colorfmt
+                        just give a warning saying colorfmt does not match source colorfmt, if u know what you are doing disregard
+                    4 give none (WORKS)
+                '''
 
                 # Clock.schedule_once(self.updatefont, 0)
                 self.is_cv_loaded = Clock.schedule_interval(self.updatefont_subprocesscheck, 1)
@@ -704,6 +727,7 @@ class FCVA:
                 fprint( "maxseconds", maxseconds )
                 # fprint("idslist", self.ids)
                 self.ids['StartScreenTimerID'].text = self.updateSliderElapsedTime(self.ids['vidsliderID'].value)
+                #hint, add colorfmtval here to self.FCVAWidget_shared_metadata_dict and also update it on filedrop
 
             def updateSliderElapsedTime(self, *args):
                 # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
