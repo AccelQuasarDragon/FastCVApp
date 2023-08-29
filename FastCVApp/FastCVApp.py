@@ -781,7 +781,6 @@ class FCVA:
                 popup.open()
                 #adjust the textlabel text_size after widget is displayed
                 textlabel.text_size = (0.9*popup.width, textlabel.height)
-                print("textlabel sizes", textlabel.width, textlabel.height, popup.width)
 
             def seektime(self):
                 '''
