@@ -619,6 +619,7 @@ class FCVA:
                     self.FCVAWidget_shared_metadata_dict["bufferwaitVAR2"] = 3
                     fprint(f"bufferwaitVAR2 defaulted to self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']")
                 #hint, add colorfmtval here to self.FCVAWidget_shared_metadata_dict and also update it on filedrop #3 places to update: on initial load, on filedrop, here (FCVA widgetinit)
+                #these notes now outdated, all of it is here: https://github.com/ShootingStarDragon/213d/issues/280
                 '''
                 #3 places to update colorfmt:
                     on initial load,
@@ -655,6 +656,13 @@ class FCVA:
                 https://stackoverflow.com/a/2137355
                 As rcv said, there is no method to programmatically detect the color space by inspecting the three color channels, unless you have a priori knowledge of the image content (e.g., there is a marker in the image whose color is known). If you will be accepting images from unknown sources, you must allow the user to specify the color space of their image. A good default would be to assume RGB.
                 '''
+                #if kvinit_dictVAR2 has colorfmt, update:
+                if "colorfmt" in self.kvinit_dictVAR2:
+                    self.FCVAWidget_shared_metadata_dict["colorfmt"] = self.kvinit_dictVAR2["colorfmt"]
+                    print("check colorfmt", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.kvinit_dictVAR2["colorfmt"])
+                else:
+                    self.FCVAWidget_shared_metadata_dict["colorfmt"] = "bgr"
+                    print("no colorfmt, automatically set to bgr", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.FCVAWidget_shared_metadata_dict["colorfmt"])
 
                 # Clock.schedule_once(self.updatefont, 0)
                 self.is_cv_loaded = Clock.schedule_interval(self.updatefont_subprocesscheck, 1)
@@ -844,7 +852,12 @@ class FCVA:
                     self.CV_off()
 
             def populate_texture(self, texture, bufferVAR, colorformatVAR, bufferfmtVAR):
-                texture.blit_buffer(bufferVAR, colorfmt=colorformatVAR, bufferfmt=bufferfmtVAR)
+                try:
+                    texture.blit_buffer(bufferVAR, colorfmt=colorformatVAR, bufferfmt=bufferfmtVAR)
+                except Exception as e: 
+                    print("populate_texture died!", e, flush=True)
+                    import traceback
+                    print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
             
             def blit_from_shared_memory(self, *args):
                 try:
@@ -910,9 +923,11 @@ class FCVA:
                                 #     self.colorfmtval = "bgr"
 
                                 # fprint("keys? where do I add colorfmtval?", self.shared_pool_meta_list) #shared pool meta list is from the cv subprocess
-                                fprint("keys? where do I add colorfmtval?", self.FCVAWidget_shared_metadata_dict.keys()) #NICEC I FOUND THE CORRECT SHARED DICT
-                                self.colorfmtval = "bgr"
+                                # fprint("keys? where do I add colorfmtval?", self.FCVAWidget_shared_metadata_dict.keys()) #NICEC I FOUND THE CORRECT SHARED DICT
+                                # self.colorfmtval = "bgr"
                                 # self.colorfmtval = "bgra"
+                                # print("check colorfmt and type", self.FCVAWidget_shared_metadata_dict["colorfmt"], type(self.FCVAWidget_shared_metadata_dict["colorfmt"]))
+                                self.colorfmtval = self.FCVAWidget_shared_metadata_dict["colorfmt"]
 
                                 # texture documentation: https://github.com/kivy/kivy/blob/master/kivy/graphics/texture.pyx
                                 # blit to texture
@@ -990,6 +1005,8 @@ class FCVA:
         FCVAWidget.fps = args[3]
         FCVAWidget.appliedcv = args[4]
         FCVAWidget.bufferwaitVAR2 = args[5]
+        FCVAWidget.kvinit_dictVAR2 = args[6]
+
 
         # BACKSLASHES NOT COMPATIBLE WITH FSTRINGS: https://stackoverflow.com/questions/66173070/how-to-put-backslash-escape-sequence-into-f-string SOLUTION IS TO DO THINGS IN PYTHON SIDE, (set id.text values, etc)
         FCVAWidget_KV = f"""
@@ -1055,6 +1072,7 @@ class FCVA:
                             self.fps,
                             self.appliedcvVAR,
                             self.bufferwaitVAR,
+                            self.kvinit_dictVAR, 
                             )
 
                     if len(kvstring_check) != 0:
@@ -1103,7 +1121,7 @@ FCVA_screen_manager: #remember to return a root widget
                     # fprint("totality", [widgetVAR.ids for widgetVAR in main_instance.get_running_app().root.walk(loopback=True) if hasattr(widgetVAR, "ids") and "FCVAWidget_id" in  widgetVAR.ids])
                     # fprint("did I get it???", [widgetVAR.ids["FCVAWidget_id"] for widgetVAR in main_instance.get_running_app().root.walk(loopback=True) if hasattr(widgetVAR, "ids")])
 
-                    #now that I found the FCVAWidget_id using root.walk, fire the even to turn off all subprocesses
+                    #now that I found the FCVAWidget_id using root.walk, fire the event to turn off all subprocesses
                     FCVAWidget_searchlist = [widgetVAR for widgetVAR in main_instance.get_running_app().root.walk(loopback=True) if hasattr(widgetVAR, "ids") and "FCVAWidget_id" in  widgetVAR.ids]
                     # now I have the widget by ID, but NOT THE WIDGET: https://stackoverflow.com/a/35795211
                     #fire all the clear events:
