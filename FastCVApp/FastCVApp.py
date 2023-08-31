@@ -1094,6 +1094,9 @@ class FCVA:
             os.environ["KIVY_NO_CONSOLELOG"] = "1" #logging errs on laptop for some reason
             # if sys.__stdout__ is None or sys.__stderr__ is None:
             #     os.environ["KIVY_NO_CONSOLELOG"] = "1"
+            # disable multitouch that makes red dots on MACM1 as per: https://github.com/AccelQuasarDragon/FastCVApp/issues/3
+            from kivy.config import Config
+            Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
             from kivy.app import App
             from kivy.lang import Builder
             from kivy.uix.screenmanager import ScreenManager, Screen
