@@ -43,7 +43,7 @@ else:
             print("there should only be one path to FastCVApp/FastCVApp.py, check your env", solution, flush=True)
         for solutionitem in solution:
             sys.path.append(solutionitem)
-        print("appended solution!",sys.path)
+        # print("appended solution!",sys.path)
 
 from FCVAutils import FCVA_update_resources
 #udpate paths here
