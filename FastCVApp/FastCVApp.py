@@ -3,7 +3,7 @@ import cv2
 import time
 import os, sys
 import numpy as np
-from FCVAutils import fprint
+from fcvautils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
@@ -384,7 +384,7 @@ class FCVA:
     def run(self):
         try:
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "FastCVApp":
+            if __name__ == "fastcvapp":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
@@ -607,7 +607,7 @@ class FCVA:
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if __name__ == "FastCVApp":
+                    if __name__ == "fastcvapp":
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
                         fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")

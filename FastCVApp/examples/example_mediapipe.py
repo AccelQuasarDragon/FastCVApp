@@ -60,7 +60,7 @@ else:
             sys.path.append(solutionitem)
         # print("appended solution!",sys.path)
 
-from FCVAutils import FCVA_update_resources
+from fcvautils import FCVA_update_resources
 #udpate paths here
 # FCVA_update_resources(sourcelocationVAR = ["examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
 FCVA_update_resources(sourcelocationVAR = ["examples"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
@@ -155,8 +155,8 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     print("location of file if name main?", __file__, os.getpid() )
     # print("paths??", sys.path)
-    import FastCVApp
-    app = FastCVApp.FCVA()
+    import fastcvapp
+    app = fastcvapp.FCVA()
     app.appliedcv = apply_mediapipe_func
     app.colorfmt = "rgb" #for testing (default should be bgr to match what opencv uses)
     app.fdimension = [1280, 720] #for testing (default is 1920, 1080)

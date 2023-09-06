@@ -43,9 +43,9 @@ else:
             print("there should only be one path to FastCVApp/FastCVApp.py, check your env", solution, flush=True)
         for solutionitem in solution:
             sys.path.append(solutionitem)
-        # print("appended solution!",sys.path)
+        print("appended solution!",sys.path)
 
-from FCVAutils import FCVA_update_resources
+from fcvautils import FCVA_update_resources
 #udpate paths here
 # FCVA_update_resources(sourcelocationVAR = ["examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
 FCVA_update_resources(sourcelocationVAR = ["examples"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
@@ -78,8 +78,8 @@ def identity_func(*args):
 if __name__ == "__main__":
     import multiprocessing 
     multiprocessing.freeze_support()
-    import FastCVApp
-    app = FastCVApp.FCVA()
+    import fastcvapp
+    app = fastcvapp.FCVA()
 
     app.appliedcv = identity_func
     # / and \ works on windows, only / on mac tho 

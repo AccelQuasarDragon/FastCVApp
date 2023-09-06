@@ -52,7 +52,7 @@ else:
             sys.path.append(solutionitem)
         # print("appended solution!",sys.path)
 
-from FCVAutils import FCVA_update_resources
+from fcvautils import FCVA_update_resources
 #udpate paths here
 # FCVA_update_resources(sourcelocationVAR = ["examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
 FCVA_update_resources(sourcelocationVAR = ["examples"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
@@ -88,8 +88,8 @@ def open_backsub(*args):
 if __name__ == "__main__":
     import multiprocessing 
     multiprocessing.freeze_support()
-    import FastCVApp
-    app = FastCVApp.FCVA()
+    import fastcvapp
+    app = fastcvapp.FCVA()
     app.appliedcv = open_backsub
 
     app.source = sourcelocation
