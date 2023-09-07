@@ -3,7 +3,10 @@ import cv2
 import time
 import os, sys
 import numpy as np
-from fcvautils import fprint
+if hasattr(sys, "_MEIPASS"):
+    from fastcvapp.fcvautils import fprint
+else:
+    from fcvautils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
@@ -384,7 +387,7 @@ class FCVA:
     def run(self):
         try:
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "fastcvapp":
+            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
@@ -607,7 +610,7 @@ class FCVA:
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if __name__ == "fastcvapp":
+                    if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
                         fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")
@@ -682,7 +685,10 @@ class FCVA:
                 #assume font is in this directory/fonts
                 # https://stackoverflow.com/questions/247770/how-to-retrieve-a-modules-path
                 # https://stackoverflow.com/questions/50499/how-do-i-get-the-path-and-name-of-the-file-that-is-currently-executing/50905#50905
-                this_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+                if hasattr(sys, "_MEIPASS"):
+                    this_dir = sys._MEIPASS
+                else:
+                    this_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
                 font_path = os.path.join(this_dir, "fonts", "materialdesignicons-webfont.ttf")
                 fprint("what is fontpath??", font_path)
                 self.ids['StartScreenButtonID'].font_name = font_path
