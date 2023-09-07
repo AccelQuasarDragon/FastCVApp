@@ -144,6 +144,9 @@ def open_cvpipeline(*args):
                 #hope this works for both py file and running from pyinstaller, i'll have to check
                 # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
                 tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                #now to acommodate if this was made with pyinstaller as a module:
+                if hasattr(sys, "_MEIPASS") and "fastcvapp" in tasklocation:
+                    tasklocation = os.path.join(sys._MEIPASS,'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
                 
             if platform == "darwin":
                 fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
