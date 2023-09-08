@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastcvapp"
-version = "0.2.0"
+version = "0.2.1"
 description = "Create a computer vision app FAST! Multiprocessing made easy, right out of the box."
 authors = ["AccelQuasarDragon"]
 license = "MIT License"

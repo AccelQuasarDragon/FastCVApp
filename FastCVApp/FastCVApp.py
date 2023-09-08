@@ -3,7 +3,10 @@ import cv2
 import time
 import os, sys
 import numpy as np
-from FCVAutils import fprint
+if hasattr(sys, "_MEIPASS"):
+    from fastcvapp.fcvautils import fprint
+else:
+    from fcvautils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
@@ -121,7 +124,7 @@ def open_cvpipeline(*args):
         # fprint("is it mediapipe or mp? (it's the actual modulename, nice)", "mediapipe" in sys.modules, "mp" in sys.modules)
         modulename = 'mediapipe' #this implies mediapipe was already imported in the actual sourcecode tho
         if modulename in sys.modules:
-            print('You have imported {} module, setting up landmarker'.format(modulename))
+            fprint('{} module detected, setting up landmarker'.format(modulename))
 
             #init mediapipe here so it spawns the right amt of processes
             import mediapipe as mp
@@ -133,7 +136,7 @@ def open_cvpipeline(*args):
             # from pathlib import Path
 
             # print("file location?", Path(__file__).absolute())
-            print("cwd???3", os.getcwd())
+            # print("cwd???3", os.getcwd())
             #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
             # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
             from sys import platform
@@ -141,6 +144,9 @@ def open_cvpipeline(*args):
                 #hope this works for both py file and running from pyinstaller, i'll have to check
                 # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
                 tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                #now to acommodate if this was made with pyinstaller as a module:
+                if hasattr(sys, "_MEIPASS") and "fastcvapp" in tasklocation:
+                    tasklocation = os.path.join(sys._MEIPASS,'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
                 
             if platform == "darwin":
                 fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
@@ -156,8 +162,6 @@ def open_cvpipeline(*args):
                     # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
                     tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
-
-            fprint("what is getcwd??", os.getcwd())
             #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
 
 
@@ -386,7 +390,7 @@ class FCVA:
     def run(self):
         try:
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "FastCVApp":
+            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
@@ -414,7 +418,7 @@ class FCVA:
                             fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
                         if len(solution) != 1:
                             #warn user if multiple paths detected or none:
-                            fprint("there should only be one path to", self.source," check your env", solution)
+                            fprint("check your env, there should only be one path to source:", self.source, "possible sources:", solution)
                         # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
                         self.source = solution[0].resolve().__str__()
                         if not os.path.isfile(self.source):
@@ -528,8 +532,7 @@ class FCVA:
         subprocess_listVAR                  = args[7]
         FCVAWidget_shared_metadata_dictVAR  = args[8]
         # fprint("check args for FCVAWidget_SubprocessInit", args)
-        fprint("bufferwaitVAR2 in right dict??", FCVAWidget_shared_metadata_dictVAR["bufferwaitVAR2"])
-
+        
         for x in range(cvpartitionsVAR):
             #init analyzed/keycount dicts
             shared_analyzedA = shared_mem_managerVAR.dict()
@@ -610,10 +613,10 @@ class FCVA:
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if __name__ == "FastCVApp":
+                    if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
-                        print("FCVA FCVAWidget __init__ detected no multiprocessing, importing as such", flush=True)
+                        fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")
                         # import traceback
                         # print("full exception (YOU CAN IGNORE THIS, just testing if multiprocess/multiprocessing has already been imported)", "".join(traceback.format_exception(*sys.exc_info())))
                 
@@ -629,7 +632,6 @@ class FCVA:
                     self.FCVAWidget_shared_metadata_dict["source"] = self.source
                     #sliderdata needs to udpate slider so just schedule for 1st valid frame with clock 0
                     Clock.schedule_once(partial(self.updateSliderData,self.FCVAWidget_shared_metadata_dict), 0)
-                    fprint("schedule once???")
                 elif self.source == None:
                     self.FCVAWidget_shared_metadata_dict["source"] = self.source
                 if hasattr(self, "bufferwaitVAR2"):
@@ -646,10 +648,10 @@ class FCVA:
                 #if kvinit_dictVAR2 has colorfmt, update:
                 if "colorfmt" in self.kvinit_dictVAR2:
                     self.FCVAWidget_shared_metadata_dict["colorfmt"] = self.kvinit_dictVAR2["colorfmt"]
-                    print("check colorfmt", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.kvinit_dictVAR2["colorfmt"])
+                    # fprint("check colorfmt", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.kvinit_dictVAR2["colorfmt"])
                 else:
                     self.FCVAWidget_shared_metadata_dict["colorfmt"] = "bgr"
-                    print("no colorfmt, automatically set to bgr", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.FCVAWidget_shared_metadata_dict["colorfmt"])
+                    # fprint("no colorfmt, automatically set to bgr", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.FCVAWidget_shared_metadata_dict["colorfmt"])
                 if "fdimension" in self.kvinit_dictVAR2:
                     self.FCVAWidget_shared_metadata_dict["fdimension"] = self.kvinit_dictVAR2["fdimension"]
 
@@ -686,7 +688,10 @@ class FCVA:
                 #assume font is in this directory/fonts
                 # https://stackoverflow.com/questions/247770/how-to-retrieve-a-modules-path
                 # https://stackoverflow.com/questions/50499/how-do-i-get-the-path-and-name-of-the-file-that-is-currently-executing/50905#50905
-                this_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+                if hasattr(sys, "_MEIPASS"):
+                    this_dir = sys._MEIPASS
+                else:
+                    this_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
                 font_path = os.path.join(this_dir, "fonts", "materialdesignicons-webfont.ttf")
                 fprint("what is fontpath??", font_path)
                 self.ids['StartScreenButtonID'].font_name = font_path
@@ -750,7 +755,7 @@ class FCVA:
                 caplength = int(captest.get(cv2.CAP_PROP_FRAME_COUNT))
                 #update slidermax so that u have a 1 to 1 relationship between sliderval and frame:
                 self.ids['vidsliderID'].max = caplength
-                fprint("what is caplenthg?", caplength)
+                # fprint("what is caplenthg?", caplength)
                 capfps = captest.get(cv2.CAP_PROP_FPS)
                 self.spf = (1/capfps)
                 captest.release()
@@ -759,7 +764,7 @@ class FCVA:
                 FCVAWidget_shared_metadata_dictVAR["capfps"] = capfps
                 self.fps = FCVAWidget_shared_metadata_dictVAR["capfps"]
                 FCVAWidget_shared_metadata_dictVAR["maxseconds"] = maxseconds
-                fprint( "maxseconds", maxseconds )
+                # fprint( "maxseconds", maxseconds )
                 # fprint("idslist", self.ids)
                 self.ids['StartScreenTimerID'].text = self.updateSliderElapsedTime(self.ids['vidsliderID'].value)
                 #hint, add colorfmtval here to self.FCVAWidget_shared_metadata_dict and also update it on filedrop
