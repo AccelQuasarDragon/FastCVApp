@@ -3,9 +3,10 @@ import cv2
 import time
 import os, sys
 import numpy as np
-if hasattr(sys, "_MEIPASS"):
+try:
+    #this only works when frozen as a module....
     from fastcvapp.fcvautils import fprint
-else:
+except:
     from fcvautils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
@@ -416,7 +417,7 @@ class FCVA:
                                 solution += testfilter
                         if len(solution) == 0:
                             fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
-                        if len(solution) != 1:
+                        elif len(solution) != 1:
                             #warn user if multiple paths detected or none:
                             fprint("check your env, there should only be one path to source:", self.source, "possible sources:", solution)
                         # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
@@ -1099,6 +1100,9 @@ class FCVA:
             os.environ["KIVY_NO_CONSOLELOG"] = "1" #logging errs on laptop for some reason
             # if sys.__stdout__ is None or sys.__stderr__ is None:
             #     os.environ["KIVY_NO_CONSOLELOG"] = "1"
+            # disable multitouch that makes red dots on MACM1 as per: https://github.com/AccelQuasarDragon/FastCVApp/issues/3
+            from kivy.config import Config
+            Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
             from kivy.app import App
             from kivy.lang import Builder
             from kivy.uix.screenmanager import ScreenManager, Screen
