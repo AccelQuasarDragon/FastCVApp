@@ -3,9 +3,10 @@ import cv2
 import time
 import os, sys
 import numpy as np
-if hasattr(sys, "_MEIPASS"):
+try:
+    #this only works when frozen as a module....
     from fastcvapp.fcvautils import fprint
-else:
+except:
     from fcvautils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
