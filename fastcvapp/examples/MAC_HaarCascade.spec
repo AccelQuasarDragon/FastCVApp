@@ -10,7 +10,7 @@ a = Analysis(
     ['example_haarcascade.py'],
     pathex=[],
     binaries=[],
-    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (cv2.data.haarcascades+'haarcascade_frontalface_default.xml', "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    datas=[(basedir + "fastcvapp.py", "."), (basedir + "fcvautils.py", "."), (cv2.data.haarcascades+'haarcascade_frontalface_default.xml', "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
     hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
     hookspath=[],
     hooksconfig={},

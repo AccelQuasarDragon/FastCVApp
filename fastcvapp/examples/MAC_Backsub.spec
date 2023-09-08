@@ -10,7 +10,7 @@ a = Analysis(
     ['example_backgroundsubtraction.py'],
     pathex=[],
     binaries=[],
-    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    datas=[(basedir + "fastcvapp.py", "."), (basedir + "fcvautils.py", "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
     hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
     hookspath=[],
     hooksconfig={},
@@ -44,8 +44,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
-# https://pyinstaller.org/en/stable/spec-files.html#spec-file-options-for-a-macos-bundle
-app = BUNDLE(exe,
-    name='BacksubMAC.app',
-    icon=None,
-    bundle_identifier=None)
+
