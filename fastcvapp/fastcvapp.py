@@ -416,7 +416,7 @@ class FCVA:
                                 solution += testfilter
                         if len(solution) == 0:
                             fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
-                        if len(solution) != 1:
+                        elif len(solution) != 1:
                             #warn user if multiple paths detected or none:
                             fprint("check your env, there should only be one path to source:", self.source, "possible sources:", solution)
                         # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
