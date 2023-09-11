@@ -56,16 +56,19 @@ try:
 
     try: 
         import pathlib
+        #in pyinstaller
         if hasattr(sys, "_MEIPASS"):
+            #using fcva as a project
             if len(list(pathlib.Path(pathstr).rglob(os.path.join("fcvautils.py")))) > 0:
                 from fcvautils import FCVA_update_resources
             else:
                 #importing using fastcvapp as a module
                 from fastcvapp.fcvautils import FCVA_update_resources
         else:
-            from fcvautils import FCVA_update_resources
+            # NOT in pyinstaller, using fcva as a module
+            from fastcvapp.fcvautils import FCVA_update_resources
     except:
-        #importing from fastcvapp project
+        #importing from fastcvapp project (using fcva as a project)
         from fcvautils import FCVA_update_resources
     #udpate paths here
     # FCVA_update_resources(sourcelocationVAR = ["examples", "creativecommonsmedia", "Elephants Dream charstart2FULL_265.mp4"], destlocationVAR = ["examples"]) #this has the sys.path.append(sys._MEIPASS)
