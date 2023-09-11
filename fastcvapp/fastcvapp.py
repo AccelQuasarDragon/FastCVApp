@@ -18,12 +18,12 @@ solution is if meipass AND fcvautils in sys._MEIPASS > from fcvautils import
 elif meipass then fastcvapp.fcvautils
 no meipass > from fcvautils import fprint
 '''
-# try: #if hasattr(sys, "_MEIPASS"):
-#     #this only works when frozen as a module....
-#     from fastcvapp.fcvautils import fprint
-# except:
-#     from fcvautils import fprint #from terminal, also when as a pyinstaller project
-from fcvautils import fprint
+try: #if hasattr(sys, "_MEIPASS"):
+    #this only works when frozen as a module....
+    from fastcvapp.fcvautils import fprint
+except:
+    from fcvautils import fprint #from terminal, also when as a pyinstaller project
+# from fcvautils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
