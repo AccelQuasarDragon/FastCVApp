@@ -181,7 +181,7 @@ try:
             from fastcvapp.fastcvapp import FCVA
             app = FCVA()
         app.appliedcv = apply_mediapipe_func
-        app.colorfmt = "rgb" #for testing (default should be bgr to match what opencv uses)
+        app.colorfmt = "bgr" #rgb for testing (default should be bgr to match what opencv uses)
         app.fdimension = [1280, 720] #for testing (default is 1920, 1080)
 
         # # / and \ works on windows, only / on mac tho 
