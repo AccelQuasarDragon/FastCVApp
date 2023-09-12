@@ -44,4 +44,11 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+# https://pyinstaller.org/en/stable/spec-files.html#spec-file-options-for-a-macos-bundle
+app = BUNDLE(
+    exe,
+    name='BacksubMAC.app',
+    icon=None,
+    bundle_identifier=None,
+)
 
