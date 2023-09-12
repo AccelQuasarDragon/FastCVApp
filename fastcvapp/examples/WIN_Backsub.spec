@@ -1,21 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
-#reference for adding mediapipe with pyinstaller https://stackoverflow.com/questions/67887088/issues-compiling-mediapipe-with-pyinstaller-on-macos
+from kivy_deps import sdl2, glew
 
 block_cipher = None
 
+#don't think I can use pathex since I run the spec file in examples folder and then it goes back up to look for "examples\FastCVApp.py"
 basedir = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep)[:-1]) + os.path.sep
 print("file location?", basedir)
 
-def get_mediapipe_path():
-    import mediapipe
-    mediapipe_path = mediapipe.__path__[0]
-    return mediapipe_path
-
 a = Analysis(
-    ['example_mediapipe.py'],
-    pathex=[],
+    ['example_backgroundsubtraction.py'],
+    pathex=[''],
     binaries=[],
-    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    datas=[(basedir + "fastcvapp.py", "."), (basedir + "fcvautils.py", "."), (basedir + os.path.join("examples", "creativecommonsmedia"), os.path.join("examples", "creativecommonsmedia")), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
     hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
     hookspath=[],
     hooksconfig={},
@@ -28,18 +24,14 @@ a = Analysis(
 )
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-mediapipe_tree = Tree(get_mediapipe_path(), prefix='mediapipe', excludes=["*.pyc"])
-a.datas += mediapipe_tree
-a.binaries = filter(lambda x: 'mediapipe' not in x[0], a.binaries)
-
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
     a.zipfiles,
     a.datas,
-    [],
-    name='MediapipeMAC',
+    *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
+    name='Backsub',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -52,11 +44,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-)
-# https://pyinstaller.org/en/stable/spec-files.html#spec-file-options-for-a-macos-bundle
-app = BUNDLE(
-    exe,
-    name='MediapipeMAC.app',
-    icon=None,
-    bundle_identifier=None,
 )

@@ -3,11 +3,32 @@ import cv2
 import time
 import os, sys
 import numpy as np
-from FCVAutils import fprint
+'''
+2 things:
+from proj
+as module
+areas:
+terminal: fastcvapp/fastcvapp/examples
+pyinstaller
+
+what fails:
+windows: as project pyinstaller
+
+solution is if meipass AND fcvautils in sys._MEIPASS > from fcvautils import 
+elif meipass then fastcvapp.fcvautils
+no meipass > from fcvautils import fprint
+'''
+try: #if hasattr(sys, "_MEIPASS"):
+    #this only works when frozen as a module....
+    from fastcvapp.fcvautils import fprint
+except:
+    from fcvautils import fprint #from terminal, also when as a pyinstaller project
+# from fcvautils import fprint
 #blosc uses multiprocessing, call it after freeze support so exe doesn't hang
 #https://github.com/pyinstaller/pyinstaller/issues/7470#issuecomment-1448502333
 #I immediately call multiprocessing.freeze_support() in example_mediapipe but it's not good for abstraction, think about it
 import blosc2
+import pathlib
 
 def frameblock(*args):
     '''
@@ -80,6 +101,7 @@ def int_to_partition(*args):
 
 def open_cvpipeline(*args):
     try:
+        import sys
         appliedcv                           = args[0]
         shared_analyzedVAR                  = args[1]
         shared_analyzedKeycountVAR          = args[2]
@@ -93,10 +115,12 @@ def open_cvpipeline(*args):
         FCVAWidget_shared_metadata_dictVAR2 = args[10]
 
         #didn't know about apipreference: https://stackoverflow.com/questions/73753126/why-does-opencv-read-video-faster-than-ffmpeg
-        currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
         #if source exists (that way you can just start the subprocess w/o requiring a source), if u change source you'll end up triggering the source change code in the while loop so ur good:
         if "source" in FCVAWidget_shared_metadata_dictVAR2.keys():
+            currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
             sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
+        else:
+            currentsource = None
         internal_framecount = 0
         force_monotonic_increasing = 0 #mediapipe keeps complaining about " Input timestamp must be monotonically increasing."
         instance_count = 0
@@ -112,13 +136,12 @@ def open_cvpipeline(*args):
         analyzed_dequeKEYS = deque(maxlen=bufferlen)
 
         #some examples do not require mediapipe, only load them when mediapipe has already been loaded
-        import sys
 
         # https://stackoverflow.com/questions/30483246/how-can-i-check-if-a-module-has-been-imported
         # fprint("is it mediapipe or mp? (it's the actual modulename, nice)", "mediapipe" in sys.modules, "mp" in sys.modules)
         modulename = 'mediapipe' #this implies mediapipe was already imported in the actual sourcecode tho
         if modulename in sys.modules:
-            print('You have imported {} module, setting up landmarker'.format(modulename))
+            fprint('{} module detected, setting up landmarker'.format(modulename))
 
             #init mediapipe here so it spawns the right amt of processes
             import mediapipe as mp
@@ -127,10 +150,10 @@ def open_cvpipeline(*args):
             #assume this file structure:
             # this file\examples\creativecommonsmedia\pose_landmarker_full.task is the location
             # https://stackoverflow.com/a/50098973
-            from pathlib import Path
+            # from pathlib import Path
 
-            print("file location?", Path(__file__).absolute())
-            print("cwd???3", os.getcwd())
+            # print("file location?", Path(__file__).absolute())
+            # print("cwd???3", os.getcwd())
             #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
             # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
             from sys import platform
@@ -138,6 +161,9 @@ def open_cvpipeline(*args):
                 #hope this works for both py file and running from pyinstaller, i'll have to check
                 # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
                 tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+                #now to acommodate if this was made with pyinstaller as a module:
+                if hasattr(sys, "_MEIPASS") and "fastcvapp" in tasklocation:
+                    tasklocation = os.path.join(sys._MEIPASS,'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
                 
             if platform == "darwin":
                 fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
@@ -153,8 +179,6 @@ def open_cvpipeline(*args):
                     # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
                     tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
 
-
-            fprint("what is getcwd??", os.getcwd())
             #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
 
 
@@ -193,6 +217,8 @@ def open_cvpipeline(*args):
         FCVAWidget_shared_metadata_dictVAR2["seek_req_val" + str(os.getpid())] = 0
         FCVAWidget_shared_metadata_dictVAR2["subprocessREAD" + str(pid)] = True
         FCVAWidget_shared_metadata_dictVAR2["subprocess_cv_load" + str(pid)] = True
+
+        # testvar = 0 #remember to delete this
         while True:
             '''
             PLAN:
@@ -218,10 +244,11 @@ def open_cvpipeline(*args):
                 you want to write out the analyzed frames first
                 there is some downtime where kivy reads from a shareddict, in that time I would ideally read/analyze frames (something that doesn't lock the shared dict)
             '''
+            
             #make sure things have started AND this processess is not stopped:
 
             #if source is different, close cap and reopen with new source: also remember this adds time to this already time critical function...
-            if currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]:
+            if "source" in FCVAWidget_shared_metadata_dictVAR2.keys() and currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]:
                 sourcecap.release()
                 sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
                 currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
@@ -239,20 +266,39 @@ def open_cvpipeline(*args):
             #on readframe, add a seek to frame
             #from my quick testing takes ~6ms to get to frame, but doesn't matter since everything should wait until all subprocesses seek to that frame
 
-            if "starttime" in FCVAWidget_shared_metadata_dictVAR2 and ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2) and FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)]:
-
+            #now you also have to check for fps ON EVERY RUN.... yikes
+            if "starttime" in FCVAWidget_shared_metadata_dictVAR2 and ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2) and FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)] and "capfps" in FCVAWidget_shared_metadata_dictVAR2.keys():
+                #REMEMBER TO UPDATE FPS:
+                fps = FCVAWidget_shared_metadata_dictVAR2["capfps"]
                 initial_time = time.time()
                 future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*internal_framecount)
                 current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
-                # fprint("frame advantage START????", os.getpid(), internal_framecount, current_framenumber, future_time-time.time(), time.time())
+                # fprint("frame advantage START????", internal_framecount, current_framenumber, future_time-time.time(), time.time())
                 
                 newwritestart = time.time()
+                
+                # if testvar <20:
+                #     fprint("need to push data to kivy", 
+                #             len(analyzed_deque) == bufferlen, 
+                #             (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1), 
+                #             max(shared_analyzedKeycountVAR.values()) <= current_framenumber, 
+                #             max(shared_analyzedKeycountVAR.values()) == -1, 
+                #             "get max of these and is < current_framenumber", shared_analyzedKeycountVAR.values(),
+                #             "current_framenumber", current_framenumber, 
+                #             "starttime:", FCVAWidget_shared_metadata_dictVAR2["starttime"], 
+                #             time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(FCVAWidget_shared_metadata_dictVAR2["starttime"])),
+                #             "does fps exist?", fps,
+                #             "constructing framenumber", time.time(),
+                #             FCVAWidget_shared_metadata_dictVAR2["starttime"]/(1/fps),
+                #             (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps)
+                #         )
+                #     testvar += 1
                 if len(analyzed_deque) == bufferlen and (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1):
                     dictwritetime = time.time()
                     for x in range(bufferlen):
                         shared_analyzedVAR['frame'+str(x)] = analyzed_deque.popleft()
                         shared_analyzedKeycountVAR['key'+str(x)] = analyzed_dequeKEYS.popleft()
-                    fprint("updated shareddict", shared_analyzedKeycountVAR.values())
+                    # fprint("updated shareddict", shared_analyzedKeycountVAR.values())
                 newwriteend = time.time()
                 
                 afteranalyzetimestart = time.time()
@@ -270,7 +316,7 @@ def open_cvpipeline(*args):
                         raw_dequeKEYS, 
                         force_monotonic_increasing)
                     force_monotonic_increasing += bufferlen  
-                    fprint("resultdeque timing (appliedcv)", time.time() - rtime,current_framenumber)
+                    # fprint("resultdeque timing (appliedcv)", time.time() - rtime,current_framenumber)
                     current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
                     otherhalf = time.time()
 
@@ -283,8 +329,9 @@ def open_cvpipeline(*args):
                             result_compressed = blosc2.compress(result_compressed,filter=blosc2.Filter.SHUFFLE, codec=blosc2.Codec.LZ4)
                             analyzed_deque.append(result_compressed)
                             analyzed_dequeKEYS.append(raw_dequeKEYS.popleft())
-                    fprint("analyzed keys???", [analyzed_dequeKEYS[x] for x in range(len(analyzed_dequeKEYS))], current_framenumber)
+                    # fprint("analyzed keys???", [analyzed_dequeKEYS[x] for x in range(len(analyzed_dequeKEYS))], current_framenumber)
                 afteranalyzetime = time.time()
+                # fprint("trying to analyze correct?")
 
                 #update info for seeking
                 if "seek_req_val" in FCVAWidget_shared_metadata_dictVAR2 and FCVAWidget_shared_metadata_dictVAR2["seek_req_val"] != FCVAWidget_shared_metadata_dictVAR2["seek_req_val" + str(os.getpid())]:
@@ -303,9 +350,9 @@ def open_cvpipeline(*args):
                     #hoping this resets the keycounts so that frames get updated to shared_analyzed deque:
                     for keyvar in shared_analyzedKeycountVAR.keys():
                         shared_analyzedKeycountVAR[keyvar] = -1
-                    fprint("CLEARED deques", len(raw_deque), len(raw_dequeKEYS), len(analyzed_deque), len(analyzed_dequeKEYS))
+                    # fprint("CLEARED deques", len(raw_deque), len(raw_dequeKEYS), len(analyzed_deque), len(analyzed_dequeKEYS))
                     #reset instance count to be at the right spot where internal_framecount is:
-                    fprint("internal framecount to instance", FCVAWidget_shared_metadata_dictVAR2["seek_req_val"],internal_framecount, maxpartitions, bufferlen,  instance_count)
+                    # fprint("internal framecount to instance", FCVAWidget_shared_metadata_dictVAR2["seek_req_val"],internal_framecount, maxpartitions, bufferlen,  instance_count)
 
                 if len(raw_deque) <= int(bufferlen/2) and FCVAWidget_shared_metadata_dictVAR2["subprocessREAD" + str(pid)]:
                     #get the right framecount:
@@ -323,8 +370,12 @@ def open_cvpipeline(*args):
                         # fprint("ret and internal_framecount in framelist", ret, internal_framecount, framelist, ret and (internal_framecount in framelist))
                         if ret and (internal_framecount in framelist):
                             # i might not be picking up a pose because the frame is being read upside down, flip it first before analyzing with mediapipe
+                            framewidth = FCVAWidget_shared_metadata_dictVAR2["fdimension"][0]
+                            frameheight = FCVAWidget_shared_metadata_dictVAR2["fdimension"][1] 
                             # framedata = cv2.resize(framedata, (1280, 720))
-                            framedata = cv2.resize(framedata, (1920, 1080))
+                            fprint("dimension types cv", type(framewidth), framewidth, type(frameheight), frameheight)
+                            framedata = cv2.resize(framedata, (framewidth, frameheight))
+                            # framedata = cv2.resize(framedata, (1920, 1080))
                             # framedata = cv2.resize(framedata, (640, 480))
                             # framedata = cv2.flip(framedata, 0) 
                             # framedata = cv2.cvtColor(framedata, cv2.COLOR_RGB2BGR)
@@ -339,6 +390,10 @@ def open_cvpipeline(*args):
                     if len(raw_deque) != 10:
                         fprint("reading is wrekt", len(raw_deque), [raw_dequeKEYS[x] for x in range(len(raw_dequeKEYS))], "partition number", partitionnumber, instance_count, bufferlen, maxpartitions, internal_framecount, framelist, current_framenumber)
                     # fprint("the for loop structure is slow...", time.time()-timeoog)
+            else:
+                import time
+                # fprint("what's going on", "starttime" in FCVAWidget_shared_metadata_dictVAR2, ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2), FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)] )
+                time.sleep(1)
     except Exception as e: 
         print("open_appliedcv died!", e)
         import traceback
@@ -352,64 +407,45 @@ class FCVA:
     def run(self):
         try:
             fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "FastCVApp":
+            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
                 # reference: https://stackoverflow.com/questions/8220108/how-do-i-check-the-operating-system-in-python
-                from sys import platform
-                if platform == "linux" or platform == "linux2":
-                    # linux
-                    pass
+                if hasattr(self, "source"):
+                    from sys import platform
+                    if platform == "linux" or platform == "linux2":
+                        # linux
+                        pass
 
-                elif platform == "win32" or platform == "darwin":
-                    # Windows...
-                    # check current directory, then check tmpfolder, then complain:
-
-                    # if you're in examples folder, path is gonna be wrong, so fix it:
-                    dirlist = os.getcwd().split(os.path.sep)
-                    if "examples" in dirlist[-1]:
-                        # pathjoin is weird: https://stackoverflow.com/questions/2422798/python-os-path-join-on-windows
-                        dirlist_source = (
-                            dirlist[0]
-                            + os.path.sep
-                            + os.path.join(*dirlist[1 : len(dirlist) - 1])
-                            + os.path.sep
-                            + self.source
-                        )
-                        if not os.path.isfile(dirlist_source):
-                            print("not a playable file: ??", dirlist_source)
+                    elif platform == "win32" or platform == "darwin":
+                        #TL:DR; this block of code looks for self.source using rglob and looks through sys.path, os.getcwd and sys.MEIPASS to cover all my bases, if it finds more than 1 source it complains and throws an error
+                        if hasattr(sys, "_MEIPASS"):
+                            suspectedpathlist = sys.path+[os.getcwd(), sys._MEIPASS]
                         else:
-                            self.source = dirlist_source
-                    # NOW check current directory:
-                    elif os.path.isfile(self.source):
-                        print("file loaded:", os.getcwd() + os.sep + self.source)
-                    elif not os.path.isfile(self.source):
-                        print(
-                            "Source failed isfile check for current directory: "
-                            + str(os.path.isfile(self.source))
-                            + ". Checking location: "
-                            + str(os.path.join(os.getcwd(), self.source))
-                            + " Checking tmpdir next:"
-                        )
-
-                    # print("#check sys attr:", hasattr(sys, '_MEIPASS'))
-                    if hasattr(sys, "_MEIPASS"):
-                        # if file is frozen by pyinstaller add the MEIPASS folder to path:
-                        sys.path.append(sys._MEIPASS)
-                        tempsource = sys._MEIPASS + os.sep + self.source
-
-                        if os.path.isfile(tempsource):
-                            self.source = tempsource
-                        # checked everything, now complain:
-                        elif not os.path.isfile(tempsource):
-                            raise Exception(
-                                "Source failed isfile check: " + str(tempsource)
-                            )
-                # read just to get the fps
-                video = cv2.VideoCapture(self.source)
-                self.fps = video.get(cv2.CAP_PROP_FPS)
-                video.release()
+                            suspectedpathlist = sys.path+[os.getcwd()]
+                        solution = []
+                        for pathstr in suspectedpathlist:
+                            pathoption = list(pathlib.Path(pathstr).rglob(self.source))
+                            testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
+                            if pathoption != [] and testfilter != []:
+                                # solution.append(*testfilter)
+                                solution += testfilter
+                        if len(solution) == 0:
+                            fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
+                        elif len(solution) != 1:
+                            #warn user if multiple paths detected or none:
+                            fprint("check your env, there should only be one path to source:", self.source, "possible sources:", solution)
+                        # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
+                        self.source = solution[0].resolve().__str__()
+                        if not os.path.isfile(self.source):
+                            fprint("Source failed isfile check (so it doesn't exist or cannot be found): " + self.source, type(self.source))
+                    # read just to get the fps
+                    video = cv2.VideoCapture(self.source)
+                    self.fps = video.get(cv2.CAP_PROP_FPS)
+                    video.release()
+                else:
+                    self.source = None
                 #number of seconds to wait for mediapipe/your cv function to buffer
                 self.bufferwait = 2
 
@@ -417,7 +453,7 @@ class FCVA:
                 #sanity checks
                 if not hasattr(self, "fps"):
                     # default to 30fps, else set blit buffer speed to 1/30 sec
-                    self.fps = 1 / 30
+                    self.fps = 30
                 if not hasattr(self, "title"):
                     kvinit_dict[
                         "title"
@@ -432,6 +468,12 @@ class FCVA:
                     print(
                         "FCVA.appliedcv is currently None. Not starting the CV subprocess."
                     )
+                if hasattr(self, "fdimension"):
+                    kvinit_dict["fdimension"] = self.fdimension
+                else:
+                    #width then height
+                    kvinit_dict["fdimension"] = [1920, 1080]
+
 
                 bufferlen = 10
                 if hasattr(self, "cvpartitions"):
@@ -439,6 +481,7 @@ class FCVA:
                 else:
                     # cvpartitions = 3
                     cvpartitions = 4
+                # print("how many paritions/ cv subprocesses?", cvpartitions)
                 #init shared dicts:
 
                 #nested shared obj works:
@@ -506,8 +549,7 @@ class FCVA:
         subprocess_listVAR                  = args[7]
         FCVAWidget_shared_metadata_dictVAR  = args[8]
         # fprint("check args for FCVAWidget_SubprocessInit", args)
-        fprint("bufferwaitVAR2 in right dict??", FCVAWidget_shared_metadata_dictVAR["bufferwaitVAR2"])
-
+        
         for x in range(cvpartitionsVAR):
             #init analyzed/keycount dicts
             shared_analyzedA = shared_mem_managerVAR.dict()
@@ -566,9 +608,18 @@ class FCVA:
         import datetime
         from functools import partial
         import inspect, os
+        from kivy.uix.textinput import TextInput
 
+        class FCVAPopup(Popup):
+            def dismiss(self, *args, **kwargs):
+                #do the source class event
+                super().dismiss(*args, **kwargs)
+                #I need to send the textinput widget and save to the correct instance of FCVAWidget.FCVAWidget_shared_metadata_dict["colorfmt"]
+                self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"] = self.fcvapopuptextinputREF.text
+                self.fcvaref.FCVAWidget_shared_metadata_dict["fdimension"] = [int(intvar) for intvar in self.resolutiontextinputREF.text.split(",")]
+                fprint("set data on fcva widget", self.fcvaref.FCVAWidget_shared_metadata_dict["colorfmt"], self.fcvaref.FCVAWidget_shared_metadata_dict["fdimension"])
+                
         class FCVAWidget(BoxLayout):
-
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 #when widget is init start up the subprocesses
@@ -579,10 +630,10 @@ class FCVA:
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
-                    if __name__ == "FastCVApp":
+                    if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
                         import multiprocessing as FCVA_mp
                         FCVA_mp.freeze_support()
-                        print("FCVA FCVAWidget __init__ detected no multiprocessing, importing as such", flush=True)
+                        fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")
                         # import traceback
                         # print("full exception (YOU CAN IGNORE THIS, just testing if multiprocess/multiprocessing has already been imported)", "".join(traceback.format_exception(*sys.exc_info())))
                 
@@ -594,16 +645,32 @@ class FCVA:
                 subprocess_list = []
 
                 self.FCVAWidget_shared_metadata_dict = shared_mem_manager.dict()
-                if hasattr(self, "source"):
+                if hasattr(self, "source") and self.source != None:
                     self.FCVAWidget_shared_metadata_dict["source"] = self.source
                     #sliderdata needs to udpate slider so just schedule for 1st valid frame with clock 0
                     Clock.schedule_once(partial(self.updateSliderData,self.FCVAWidget_shared_metadata_dict), 0)
-                    fprint("schedule once???")
+                elif self.source == None:
+                    self.FCVAWidget_shared_metadata_dict["source"] = self.source
                 if hasattr(self, "bufferwaitVAR2"):
                     self.FCVAWidget_shared_metadata_dict["bufferwaitVAR2"] = self.bufferwaitVAR2
                 else: #default to 3 and say so
                     self.FCVAWidget_shared_metadata_dict["bufferwaitVAR2"] = 3
                     fprint(f"bufferwaitVAR2 defaulted to self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']")
+
+                # well, change of plans, opencv can't tell you the colorspace:
+                # so just blindly believe the user
+                # https://stackoverflow.com/a/2137355
+                # As rcv said, there is no method to programmatically detect the color space by inspecting the three color channels, unless you have a priori knowledge of the image content (e.g., there is a marker in the image whose color is known). If you will be accepting images from unknown sources, you must allow the user to specify the color space of their image. A good default would be to assume RGB.
+
+                #if kvinit_dictVAR2 has colorfmt, update:
+                if "colorfmt" in self.kvinit_dictVAR2:
+                    self.FCVAWidget_shared_metadata_dict["colorfmt"] = self.kvinit_dictVAR2["colorfmt"]
+                    # fprint("check colorfmt", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.kvinit_dictVAR2["colorfmt"])
+                else:
+                    self.FCVAWidget_shared_metadata_dict["colorfmt"] = "bgr"
+                    # fprint("no colorfmt, automatically set to bgr", "colorfmt" in self.kvinit_dictVAR2, self.kvinit_dictVAR2.keys(), self.FCVAWidget_shared_metadata_dict["colorfmt"])
+                if "fdimension" in self.kvinit_dictVAR2:
+                    self.FCVAWidget_shared_metadata_dict["fdimension"] = self.kvinit_dictVAR2["fdimension"]
 
                 # Clock.schedule_once(self.updatefont, 0)
                 self.is_cv_loaded = Clock.schedule_interval(self.updatefont_subprocesscheck, 1)
@@ -638,33 +705,59 @@ class FCVA:
                 #assume font is in this directory/fonts
                 # https://stackoverflow.com/questions/247770/how-to-retrieve-a-modules-path
                 # https://stackoverflow.com/questions/50499/how-do-i-get-the-path-and-name-of-the-file-that-is-currently-executing/50905#50905
-                this_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+                if hasattr(sys, "_MEIPASS"):
+                    this_dir = sys._MEIPASS
+                else:
+                    this_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
                 font_path = os.path.join(this_dir, "fonts", "materialdesignicons-webfont.ttf")
                 fprint("what is fontpath??", font_path)
                 self.ids['StartScreenButtonID'].font_name = font_path
                 self.ids['StartScreenButtonID'].text = "\U000F040A" #this is play
 
             def on_touch_down(self, touch): #overrides touchdown for entire widget
-                self.ids['vidsliderID'].on_touch_down(touch) #self is automatically passed i think, this is to make sure the slider keeps recieving commands
-                #check if slider is touched as per: https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy and per https://kivy.org/doc/stable/guide/events.html#dispatching-a-property-event
-                if self.ids['vidsliderID'].collide_point(*touch.pos):
-                    # fprint("touched????", touch)
-                    self.CV_off()
-                self.FCVAWidget_shared_metadata_dict["oldsliderpos"] = self.ids['vidsliderID'].value
+                #make sure cv is loaded before doing anything:
+                if len(self.subprocess_list) == self.cvpartitions and len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions:
+                    self.ids['vidsliderID'].on_touch_down(touch) #self is automatically passed i think, this is to make sure the slider keeps recieving commands
+                    #check if slider is touched as per: https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy and per https://kivy.org/doc/stable/guide/events.html#dispatching-a-property-event
+                    if self.ids['vidsliderID'].collide_point(*touch.pos):
+                        # fprint("touched????", touch)
+                        self.CV_off()
+                    self.FCVAWidget_shared_metadata_dict["oldsliderpos"] = self.ids['vidsliderID'].value
+                else:
+                    #popup warning
+                    box = BoxLayout(orientation='vertical')
+                    popup = Popup(title="Please wait while CV is loading...", content=box, size_hint=(0.5, 0.5))
+
+                    mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
+                    box.add_widget(mybuttonregret)
+                    mybuttonregret.bind(on_release=popup.dismiss)
+                    popup.open()
+
 
             def on_touch_up(self, touch):
-                #since I catch all the events I must send it to the widgets with touchup events:
-                self.ids['vidsliderID'].on_touch_up(touch)
-                # https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy
-                #if you release on the slider OR the slider value was moved (just checking values doesnt account for leaving it on the same frame):
-                fprint("what are values?", self.FCVAWidget_shared_metadata_dict["oldsliderpos"], self.ids['vidsliderID'].value)
-                #button takes precedence:
-                if self.ids['StartScreenButtonID'].collide_point(*touch.pos):
-                    self.toggleCV()
-                elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
-                    fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
-                    self.CV_on()
-                
+                #make sure cv is loaded before doing anything:
+                if len(self.subprocess_list) == self.cvpartitions and len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions:
+                    #since I catch all the events I must send it to the widgets with touchup events:
+                    self.ids['vidsliderID'].on_touch_up(touch)
+                    # https://stackoverflow.com/questions/50590027/how-can-i-detect-when-touch-is-in-the-children-widget-in-kivy
+                    #if you release on the slider OR the slider value was moved (just checking values doesnt account for leaving it on the same frame):
+                    fprint("what are values?", self.FCVAWidget_shared_metadata_dict["oldsliderpos"], self.ids['vidsliderID'].value)
+                    #button takes precedence:
+                    if self.ids['StartScreenButtonID'].collide_point(*touch.pos):
+                        self.toggleCV()
+                    elif self.ids['vidsliderID'].collide_point(*touch.pos) or (self.FCVAWidget_shared_metadata_dict["oldsliderpos"] != self.ids['vidsliderID'].value):
+                        fprint("args dont matter, check sliderpos:",self.ids['vidsliderID'].value)
+                        self.CV_on()
+                else:
+                    #popup warning
+                    box = BoxLayout(orientation='vertical')
+                    popup = Popup(title="Please wait while CV is loading...", content=box, size_hint=(0.5, 0.5))
+
+                    mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
+                    box.add_widget(mybuttonregret)
+                    mybuttonregret.bind(on_release=popup.dismiss)
+                    popup.open()
+
 
             def updateSliderData(self, *args):
                 '''
@@ -679,7 +772,7 @@ class FCVA:
                 caplength = int(captest.get(cv2.CAP_PROP_FRAME_COUNT))
                 #update slidermax so that u have a 1 to 1 relationship between sliderval and frame:
                 self.ids['vidsliderID'].max = caplength
-                fprint("what is caplenthg?", caplength)
+                # fprint("what is caplenthg?", caplength)
                 capfps = captest.get(cv2.CAP_PROP_FPS)
                 self.spf = (1/capfps)
                 captest.release()
@@ -688,7 +781,10 @@ class FCVA:
                 FCVAWidget_shared_metadata_dictVAR["capfps"] = capfps
                 self.fps = FCVAWidget_shared_metadata_dictVAR["capfps"]
                 FCVAWidget_shared_metadata_dictVAR["maxseconds"] = maxseconds
-                print( maxseconds )
+                # fprint( "maxseconds", maxseconds )
+                # fprint("idslist", self.ids)
+                self.ids['StartScreenTimerID'].text = self.updateSliderElapsedTime(self.ids['vidsliderID'].value)
+                #hint, add colorfmtval here to self.FCVAWidget_shared_metadata_dict and also update it on filedrop
 
             def updateSliderElapsedTime(self, *args):
                 # https://stackoverflow.com/questions/775049/how-do-i-convert-seconds-to-hours-minutes-and-seconds
@@ -706,14 +802,24 @@ class FCVA:
                     return ""
 
             def _on_file_drop(self, window, file_path, x, y):
-                print(file_path, str(file_path, encoding='utf-8'))
-                self.FCVAWidget_shared_metadata_dict["source"] = str(file_path, encoding='utf-8')
-                self.updateSliderData(self.FCVAWidget_shared_metadata_dict)
-                #have a popup saying it's loaded or not:
-                self.textpopup(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"])
-            
+                if len(self.subprocess_list) == self.cvpartitions and len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions:
+                    print(file_path, str(file_path, encoding='utf-8'))
+                    self.FCVAWidget_shared_metadata_dict["source"] = str(file_path, encoding='utf-8')
+                    self.updateSliderData(self.FCVAWidget_shared_metadata_dict)
+                    #have a popup saying it's loaded or not:
+                    self.textpopupinstance(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"])
+                else:
+                    #popup warning
+                    box = BoxLayout(orientation='vertical')
+                    popup = Popup(title="Please wait while CV is loading...", content=box, size_hint=(0.5, 0.5))
+
+                    mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
+                    box.add_widget(mybuttonregret)
+                    mybuttonregret.bind(on_release=popup.dismiss)
+                    popup.open()
+
             # https://stackoverflow.com/questions/54501099/how-to-run-a-method-on-the-exit-of-a-kivy-app
-            def textpopup(self, title='', text=''):
+            def textpopupinstance(self, title='', text=''):
                 """Open the pop-up with the name.
 
                 :param title: title of the pop-up to open
@@ -723,12 +829,33 @@ class FCVA:
                 :rtype: None
                 """
                 box = BoxLayout(orientation='vertical')
-                box.add_widget(Label(text=text, text_size= (400, None)))
+                textlabel = Label(text=text, text_size= (None,None))
+                box.add_widget(textlabel)
+                
+                titlewidget = Label(text="Color format of video", text_size= (400, None))
+                box.add_widget(titlewidget)
+                
+                textinputwidget = TextInput(text='bgr', multiline=False)
+                box.add_widget(textinputwidget)
+
+                titlewidget2 = Label(text="frame resolution", text_size= (400, None))
+                box.add_widget(titlewidget2)
+                
+                textinputwidget2 = TextInput(text='1920, 1080', multiline=False)
+                box.add_widget(textinputwidget2)
+                
+                popup = FCVAPopup(title=title, content=box, size_hint=(0.8, 0.8))
+                #give popup the reference to textinput and FCVAWidget
+                popup.fcvapopuptextinputREF = textinputwidget
+                popup.resolutiontextinputREF = textinputwidget2
+                popup.fcvaref = self
+
                 mybuttonregret = Button(text="Ok", size_hint=(.5, 0.25))
                 box.add_widget(mybuttonregret)
-                popup = Popup(title=title, content=box, size_hint=(None, None), size=(600, 300))
                 mybuttonregret.bind(on_release=popup.dismiss)
                 popup.open()
+                #adjust the textlabel text_size after widget is displayed
+                textlabel.text_size = (0.9*popup.width, textlabel.height)
 
             def seektime(self):
                 '''
@@ -770,6 +897,9 @@ class FCVA:
                         self.blitschedule.cancel()
                     self.blitschedule = Clock.schedule_once(self.delay_blit, self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'])
                     fprint("BLIT IN self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2'] SEC REGULAR")
+                #https://stackoverflow.com/a/45163385
+                fprint("set starttime to:", self.FCVAWidget_shared_metadata_dict["starttime"], time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(self.FCVAWidget_shared_metadata_dict["starttime"]))  )
+                #TL:DR, IS SELF.FCVAWidget_shared_metadata_dict DIFFERENT FROM FCVAWidget_shared_metadata_dict ????, they should be the same since I pass self.FCVAWidget_shared_metadata_dict to FCVAWidget_SubprocessInit, it might be different only when I call FCVAWidget_shared_metadata_dict since that is inherited from FCVAKivyBase which calls FCVA.FCVAWidgetInit
 
             def CV_off(self):
                 self.ids['StartScreenButtonID'].text = "\U000F040A" #this is play
@@ -788,7 +918,12 @@ class FCVA:
                     self.CV_off()
 
             def populate_texture(self, texture, bufferVAR, colorformatVAR, bufferfmtVAR):
-                texture.blit_buffer(bufferVAR, colorfmt=colorformatVAR, bufferfmt=bufferfmtVAR)
+                try:
+                    texture.blit_buffer(bufferVAR, colorfmt=colorformatVAR, bufferfmt=bufferfmtVAR)
+                except Exception as e: 
+                    print("populate_texture died!", e, flush=True)
+                    import traceback
+                    print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
             
             def blit_from_shared_memory(self, *args):
                 try:
@@ -822,7 +957,10 @@ class FCVA:
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:
                             frame = blosc2.decompress(frame)
-                            frame = np.frombuffer(frame, np.uint8).copy().reshape(1080, 1920, 3)
+                            framewidth = self.FCVAWidget_shared_metadata_dict["fdimension"][0]
+                            frameheight = self.FCVAWidget_shared_metadata_dict["fdimension"][1]
+                            fprint("dimension types blitting", type(framewidth), framewidth, type(frameheight), frameheight)
+                            frame = np.frombuffer(frame, np.uint8).copy().reshape(frameheight, framewidth, 3)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 4)
                             # frame = np.frombuffer(frame, np.uint8).copy().reshape(480, 640, 3)
@@ -853,8 +991,12 @@ class FCVA:
                                 #     # default to bgr
                                 #     self.colorfmtval = "bgr"
 
-                                self.colorfmtval = "bgr"
+                                # fprint("keys? where do I add colorfmtval?", self.shared_pool_meta_list) #shared pool meta list is from the cv subprocess
+                                # fprint("keys? where do I add colorfmtval?", self.FCVAWidget_shared_metadata_dict.keys()) #NICEC I FOUND THE CORRECT SHARED DICT
+                                # self.colorfmtval = "bgr"
                                 # self.colorfmtval = "bgra"
+                                # print("check colorfmt and type", self.FCVAWidget_shared_metadata_dict["colorfmt"], type(self.FCVAWidget_shared_metadata_dict["colorfmt"]))
+                                self.colorfmtval = self.FCVAWidget_shared_metadata_dict["colorfmt"]
 
                                 # texture documentation: https://github.com/kivy/kivy/blob/master/kivy/graphics/texture.pyx
                                 # blit to texture
@@ -893,10 +1035,12 @@ class FCVA:
                                 # print("blitting to texture index:", self.index)
 
                                 ggtime = time.time()
-                                if not hasattr(self, "texture1"):
+                                #make sure texture exists AND it matches the correct size, otherwise delete old texture and create anew
+                                if not hasattr(self, "texture1") or (self.texture1.size[0] != framewidth and self.texture1.size[1] != frameheight) :
                                     self.texture1 = Texture.create(
                                         size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
-                                    fprint("created texture!!!!")
+                                    fprint("created texture!!!!", self.texture1.size)
+                                fprint("texture size", self.texture1.size)
                                 # https://stackoverflow.com/questions/51546327/in-kivy-is-there-a-way-to-dynamically-change-the-shape-of-a-texture
                                 self.texture1.add_reload_observer(self.populate_texture)
                                 self.populate_texture(self.texture1, buf, self.colorfmtval, "ubyte")
@@ -932,6 +1076,7 @@ class FCVA:
         FCVAWidget.fps = args[3]
         FCVAWidget.appliedcv = args[4]
         FCVAWidget.bufferwaitVAR2 = args[5]
+        FCVAWidget.kvinit_dictVAR2 = args[6]
 
         # BACKSLASHES NOT COMPATIBLE WITH FSTRINGS: https://stackoverflow.com/questions/66173070/how-to-put-backslash-escape-sequence-into-f-string SOLUTION IS TO DO THINGS IN PYTHON SIDE, (set id.text values, etc)
         FCVAWidget_KV = f"""
@@ -959,6 +1104,7 @@ class FCVA:
             id: StartScreenButtonID
             text: 'waiting for cv function/mediapipe to load'
         Label:
+            id: StartScreenTimerID
             # text: str(vidsliderID.value) #convert slider label to a time
             text: root.updateSliderElapsedTime(vidsliderID.value)
 """
@@ -970,6 +1116,9 @@ class FCVA:
             os.environ["KIVY_NO_CONSOLELOG"] = "1" #logging errs on laptop for some reason
             # if sys.__stdout__ is None or sys.__stderr__ is None:
             #     os.environ["KIVY_NO_CONSOLELOG"] = "1"
+            # disable multitouch that makes red dots on MACM1 as per: https://github.com/AccelQuasarDragon/FastCVApp/issues/3
+            from kivy.config import Config
+            Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
             from kivy.app import App
             from kivy.lang import Builder
             from kivy.uix.screenmanager import ScreenManager, Screen
@@ -996,6 +1145,7 @@ class FCVA:
                             self.fps,
                             self.appliedcvVAR,
                             self.bufferwaitVAR,
+                            self.kvinit_dictVAR, 
                             )
 
                     if len(kvstring_check) != 0:
@@ -1044,7 +1194,7 @@ FCVA_screen_manager: #remember to return a root widget
                     # fprint("totality", [widgetVAR.ids for widgetVAR in main_instance.get_running_app().root.walk(loopback=True) if hasattr(widgetVAR, "ids") and "FCVAWidget_id" in  widgetVAR.ids])
                     # fprint("did I get it???", [widgetVAR.ids["FCVAWidget_id"] for widgetVAR in main_instance.get_running_app().root.walk(loopback=True) if hasattr(widgetVAR, "ids")])
 
-                    #now that I found the FCVAWidget_id using root.walk, fire the even to turn off all subprocesses
+                    #now that I found the FCVAWidget_id using root.walk, fire the event to turn off all subprocesses
                     FCVAWidget_searchlist = [widgetVAR for widgetVAR in main_instance.get_running_app().root.walk(loopback=True) if hasattr(widgetVAR, "ids") and "FCVAWidget_id" in  widgetVAR.ids]
                     # now I have the widget by ID, but NOT THE WIDGET: https://stackoverflow.com/a/35795211
                     #fire all the clear events:

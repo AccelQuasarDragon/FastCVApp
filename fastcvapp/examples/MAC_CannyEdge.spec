@@ -4,14 +4,14 @@
 block_cipher = None
 
 basedir = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep)[:-1]) + os.path.sep
+print("file location?", basedir)
 
-import cv2
 a = Analysis(
-    ['example_haarcascade.py'],
+    ['example_cannyedge.py'],
     pathex=[],
     binaries=[],
-    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (cv2.data.haarcascades+'haarcascade_frontalface_default.xml', "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
-    hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
+    datas=[(basedir + "fastcvapp.py", "."), (basedir + "fcvautils.py", "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -30,7 +30,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='HaarCascadeMAC',
+    name='CannyEdgeMAC',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -47,7 +47,7 @@ exe = EXE(
 # https://pyinstaller.org/en/stable/spec-files.html#spec-file-options-for-a-macos-bundle
 app = BUNDLE(
     exe,
-    name='HaarCascadeMAC.app',
+    name='CannyEdgeMAC.app',
     icon=None,
     bundle_identifier=None,
 )

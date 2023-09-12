@@ -1,16 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
-from kivy_deps import sdl2, glew
+
 
 block_cipher = None
 
 basedir = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep)[:-1]) + os.path.sep
-print("file location?", basedir)
 
 a = Analysis(
-    ['example_cannyedge.py'],
+    ['example_sepiafilter.py'],
     pathex=[],
     binaries=[],
-    datas=[(basedir + "FastCVApp.py", "."), (basedir + "FCVAutils.py", "."), (basedir + "examples\\creativecommonsmedia\\", "examples\\creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
+    datas=[(basedir + "fastcvapp.py", "."), (basedir + "fcvautils.py", "."), (basedir + "examples//creativecommonsmedia//", "examples//creativecommonsmedia"), (basedir + "fonts", "fonts"), (basedir + "logviewer", "logviewer")],
     hiddenimports=['kivy', 'blosc2', 'kivy.modules.inspector'], 
     hookspath=[],
     hooksconfig={},
@@ -29,8 +28,8 @@ exe = EXE(
     a.binaries,
     a.zipfiles,
     a.datas,
-    *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
-    name='CannyEdge',
+    [],
+    name='SepiafilterMAC',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -43,4 +42,11 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+)
+# https://pyinstaller.org/en/stable/spec-files.html#spec-file-options-for-a-macos-bundle
+app = BUNDLE(
+    exe,
+    name='SepiaFilterMAC.app',
+    icon=None,
+    bundle_identifier=None,
 )
