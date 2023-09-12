@@ -122,6 +122,7 @@ try:
             from fastcvapp.fastcvapp import FCVA
             app = FCVA()
         app.appliedcv = sepia_filter
+        app.fdimension = [1280, 720]
         # / and \ works on windows, only / on mac tho
         app.source = sourcelocation
         app.title = "Sepia filter example by Pengindoramu"
