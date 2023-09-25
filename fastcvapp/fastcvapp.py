@@ -113,6 +113,10 @@ def open_cvpipeline(*args):
         shared_rawdict                      = args[8]
         shared_rawKEYSdict                  = args[9]
         FCVAWidget_shared_metadata_dictVAR2 = args[10]
+        shared_timedict                     = args[11]
+        shared_timedictKEYS                 = args[12]
+        shared_posedict                     = args[13]
+        shared_posedictKEYS                 = args[14]
 
         #didn't know about apipreference: https://stackoverflow.com/questions/73753126/why-does-opencv-read-video-faster-than-ffmpeg
         #if source exists (that way you can just start the subprocess w/o requiring a source), if u change source you'll end up triggering the source change code in the while loop so ur good:
@@ -134,6 +138,10 @@ def open_cvpipeline(*args):
         raw_dequeKEYS = deque(maxlen=bufferlen)
         analyzed_deque = deque(maxlen=bufferlen)
         analyzed_dequeKEYS = deque(maxlen=bufferlen)
+        timerdeque = deque(maxlen=bufferlen)
+        timerdequekeys = deque(maxlen=bufferlen)
+        posedeque = deque(maxlen=bufferlen)
+        posedequekeys = deque(maxlen=bufferlen)
 
         #some examples do not require mediapipe, only load them when mediapipe has already been loaded
 
@@ -548,14 +556,20 @@ class FCVA:
         shared_pool_meta_listVAR            = args[6]
         subprocess_listVAR                  = args[7]
         FCVAWidget_shared_metadata_dictVAR  = args[8]
+        shared_timedict_listVAR             = args[9]
+        shared_posedict_listVAR             = args[10]
         # fprint("check args for FCVAWidget_SubprocessInit", args)
         
         for x in range(cvpartitionsVAR):
             #init analyzed/keycount dicts
-            shared_analyzedA = shared_mem_managerVAR.dict()
+            shared_analyzedA         = shared_mem_managerVAR.dict()
             shared_analyzedAKeycount = shared_mem_managerVAR.dict()
-            shared_rawA = shared_mem_managerVAR.dict()
-            shared_rawAKEYS = shared_mem_managerVAR.dict()
+            shared_rawA              = shared_mem_managerVAR.dict()
+            shared_rawAKEYS          = shared_mem_managerVAR.dict()
+            shared_timedict          = shared_mem_managerVAR.dict()
+            shared_timedictKEYS      = shared_mem_managerVAR.dict()
+            shared_posedict          = shared_mem_managerVAR.dict()
+            shared_posedictKEYS      = shared_mem_managerVAR.dict()
             
             #init dicts
             for y in range(bufferlenVAR):
@@ -563,6 +577,10 @@ class FCVA:
                 shared_analyzedAKeycount["key" + str(y)] = -1
                 shared_rawA["frame" + str(y)] = -1
                 shared_rawAKEYS["key" + str(y)] = -1
+                shared_timedict["frame" + str(y)] = -1
+                shared_timedictKEYS["key" + str(y)] = -1
+                shared_posedict["frame" + str(y)] = -1
+                shared_posedictKEYS["key" + str(y)] = -1
             
             #start the subprocesses
             cv_subprocessA = FCVA_mpVAR.Process(
@@ -578,7 +596,11 @@ class FCVA:
                     fpsVAR,
                     shared_rawA,
                     shared_rawAKEYS, 
-                    FCVAWidget_shared_metadata_dictVAR
+                    FCVAWidget_shared_metadata_dictVAR,
+                    shared_timedict,
+                    shared_timedictKEYS,
+                    shared_posedict,
+                    shared_posedictKEYS,
                 ),
             )
             cv_subprocessA.start()
@@ -588,7 +610,11 @@ class FCVA:
             shared_pool_meta_listVAR.append(shared_rawAKEYS)
             dicts_per_subprocessVAR = 4 #remember to update this if I add more shared dicts....
             subprocess_listVAR.append(cv_subprocessA)
-        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocessVAR]
+            shared_timedict_listVAR.append(shared_timedict)
+            shared_timedict_listVAR.append(shared_timedictKEYS)
+            shared_posedict_listVAR.append(shared_posedict)
+            shared_posedict_listVAR.append(shared_posedictKEYS)
+        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocessVAR, shared_timedict_listVAR,shared_posedict_listVAR]
 
     def FCVAWidgetInit(*args, ):#REMINDER: there is no self because I never instantiate a class with multiprocessing.process
         '''
@@ -643,6 +669,8 @@ class FCVA:
                 shared_mem_manager = FCVA_mp.Manager()
                 shared_pool_meta_list = [] #IMO this is faster, i think since it doesn't have to propagate changes down the nested dict structure
                 subprocess_list = []
+                shared_timedict_list = [] #dict + dict of keys
+                shared_posedict_list = [] #dict + dict of keys
 
                 self.FCVAWidget_shared_metadata_dict = shared_mem_manager.dict()
                 if hasattr(self, "source") and self.source != None:
@@ -685,12 +713,16 @@ class FCVA:
                     shared_pool_meta_list,
                     subprocess_list,
                     self.FCVAWidget_shared_metadata_dict,
+                    shared_timedict_list,
+                    shared_posedict_list
                     )
                 #now set all the stuff that needs to be set from initdatalist:
                 #put this in the widget for later so I can exit at the end...
                 self.shared_pool_meta_list = initdatalist[0]
                 self.subprocess_list = initdatalist[1]
                 self.dicts_per_subprocess =  initdatalist[2]
+                self.shared_timedict_list =  initdatalist[3]
+                self.shared_posedict_list =  initdatalist[4]
                 # https://kivy.org/doc/stable/api-kivy.event.html#kivy.event.EventDispatcher.bind
                 Window.bind(on_drop_file=self._on_file_drop)
             
