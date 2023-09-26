@@ -113,10 +113,10 @@ def open_cvpipeline(*args):
         shared_rawdict                      = args[8]
         shared_rawKEYSdict                  = args[9]
         FCVAWidget_shared_metadata_dictVAR2 = args[10]
-        shared_timedict                     = args[11]
-        shared_timedictKEYS                 = args[12]
-        shared_posedict                     = args[13]
-        shared_posedictKEYS                 = args[14]
+        shared_timedictVAR                  = args[11]
+        shared_timedictKEYSVAR              = args[12]
+        shared_posedictVAR                  = args[13]
+        shared_posedictKEYSVAR              = args[14]
 
         #didn't know about apipreference: https://stackoverflow.com/questions/73753126/why-does-opencv-read-video-faster-than-ffmpeg
         #if source exists (that way you can just start the subprocess w/o requiring a source), if u change source you'll end up triggering the source change code in the while loop so ur good:
@@ -138,7 +138,8 @@ def open_cvpipeline(*args):
         raw_dequeKEYS = deque(maxlen=bufferlen)
         analyzed_deque = deque(maxlen=bufferlen)
         analyzed_dequeKEYS = deque(maxlen=bufferlen)
-        timerdeque = deque(maxlen=bufferlen)
+        #timerdeque = deque(maxlen=bufferlen) #not needed, use prebuilt_timerdeque_dict instead since I want a batch of info, not a singular one
+        prebuilt_timerdeque_dict = {}
         timerdequekeys = deque(maxlen=bufferlen)
         posedeque = deque(maxlen=bufferlen)
         posedequekeys = deque(maxlen=bufferlen)
@@ -279,7 +280,7 @@ def open_cvpipeline(*args):
                 #REMEMBER TO UPDATE FPS:
                 fps = FCVAWidget_shared_metadata_dictVAR2["capfps"]
                 initial_time = time.time()
-                future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*internal_framecount)
+                future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*(internal_framecount-bufferlen)) #subtract bufferlen because I want the BEGINNING of the block
                 current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
                 # fprint("frame advantage START????", internal_framecount, current_framenumber, future_time-time.time(), time.time())
                 
@@ -306,6 +307,17 @@ def open_cvpipeline(*args):
                     for x in range(bufferlen):
                         shared_analyzedVAR['frame'+str(x)] = analyzed_deque.popleft()
                         shared_analyzedKeycountVAR['key'+str(x)] = analyzed_dequeKEYS.popleft()
+                        # shared_posedictVAR
+                        # shared_posedictKEYSVAR
+                        
+                        shared_timedictKEYSVAR['key'+str(x)] = timerdequekeys.popleft()
+                    prebuilt_timerdeque_dict["update_shared_dict_init"] = newwritestart
+                    prebuilt_timerdeque_dict["update_shared_dict_time_"] = time.time()-newwritestart
+                    prebuilt_timerdeque_dict["update_shared_dict_time_tentative_future"] = future_time
+                    prebuilt_timerdeque_dict["update_shared_dict_time_spare_future_time"] = future_time - time.time()
+
+                    shared_timedictVAR['totalinfo'] = prebuilt_timerdeque_dict
+                    prebuilt_timerdeque_dict.clear()
                     # fprint("updated shareddict", shared_analyzedKeycountVAR.values())
                 newwriteend = time.time()
                 
@@ -328,15 +340,19 @@ def open_cvpipeline(*args):
                     current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
                     otherhalf = time.time()
 
-                    #figure out future time
-                    future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*internal_framecount)
-
                     if len(resultdeque)> 0: #resultdeque can be none if seek occurs
                         for x in range(len(resultdeque)):
                             result_compressed = resultdeque.popleft().tobytes()
                             result_compressed = blosc2.compress(result_compressed,filter=blosc2.Filter.SHUFFLE, codec=blosc2.Codec.LZ4)
                             analyzed_deque.append(result_compressed)
                             analyzed_dequeKEYS.append(raw_dequeKEYS.popleft())
+                            # https://stackoverflow.com/questions/48640251/how-to-peek-front-of-deque-without-popping
+                            fprint("timerdeque len wtf?", len(timerdequekeys)) #len is 0, wtf?
+                            prebuilt_timerdeque_dict["appliedcv_time_" + str(raw_dequeKEYS[x])] = otherhalf - rtime
+                        prebuilt_timerdeque_dict["appliedcv_init"] = afteranalyzetimestart
+                        prebuilt_timerdeque_dict["appliedcv_time_tentative_future" + str(internal_framecount)] = future_time
+                        prebuilt_timerdeque_dict["appliedcv_time_spare_future_time" + str(internal_framecount)] = future_time - time.time()
+                        #don't need to update keys
                     # fprint("analyzed keys???", [analyzed_dequeKEYS[x] for x in range(len(analyzed_dequeKEYS))], current_framenumber)
                 afteranalyzetime = time.time()
                 # fprint("trying to analyze correct?")
@@ -358,6 +374,10 @@ def open_cvpipeline(*args):
                     #hoping this resets the keycounts so that frames get updated to shared_analyzed deque:
                     for keyvar in shared_analyzedKeycountVAR.keys():
                         shared_analyzedKeycountVAR[keyvar] = -1
+                    #clear timer deques and dict
+                    timerdequekeys.clear()
+                    prebuilt_timerdeque_dict.clear()
+
                     # fprint("CLEARED deques", len(raw_deque), len(raw_dequeKEYS), len(analyzed_deque), len(analyzed_dequeKEYS))
                     #reset instance count to be at the right spot where internal_framecount is:
                     # fprint("internal framecount to instance", FCVAWidget_shared_metadata_dictVAR2["seek_req_val"],internal_framecount, maxpartitions, bufferlen,  instance_count)
@@ -387,8 +407,18 @@ def open_cvpipeline(*args):
                             # framedata = cv2.resize(framedata, (640, 480))
                             # framedata = cv2.flip(framedata, 0) 
                             # framedata = cv2.cvtColor(framedata, cv2.COLOR_RGB2BGR)
+                            keyinfo = framelist[x % bufferlen]
                             raw_deque.append(framedata) #im not giving bytes, yikes? # 0 time
-                            raw_dequeKEYS.append(framelist[x % bufferlen]) # 0 time
+                            raw_dequeKEYS.append(keyinfo) # 0 time
+
+                            #timerinfo
+                            future_time_calc = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*keyinfo)
+                            prebuilt_timerdeque_dict["subprocessREAD_init"] = timeoog
+                            prebuilt_timerdeque_dict["subprocessREAD_time_"+str(keyinfo)] = time.time() - timeoog
+                            prebuilt_timerdeque_dict["future_display_time_"+str(keyinfo)] = future_time_calc
+                            timerdequekeys.append(keyinfo)
+                            fprint("timerdequekeys len init", len(timerdequekeys))
+
                         #if ret is FALSE, assume EOS. We can set pausetime. Still need to figure out how to flush everything tho
                         if not ret:
                             FCVAWidget_shared_metadata_dictVAR2["subprocessREAD" + str(pid)] = False
@@ -985,6 +1015,9 @@ class FCVA:
                             correctkey = list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].keys())[list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()).index(self.index)]
                             frameref = "frame" + correctkey.replace("key",'')
                             frame = self.shared_pool_meta_list[shared_analyzedIndex][frameref]
+                            #print out info here I guess
+                            fprint("timerinfo + KEYS",[[[z, xyz[z]] for z in xyz.items()] for xyz in self.shared_timedict_list])
+                            # fprint("timerinfoKEYS",)
                         
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:
