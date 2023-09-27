@@ -280,7 +280,7 @@ def open_cvpipeline(*args):
                 #REMEMBER TO UPDATE FPS:
                 fps = FCVAWidget_shared_metadata_dictVAR2["capfps"]
                 initial_time = time.time()
-                future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*(internal_framecount-bufferlen)) #subtract bufferlen because I want the BEGINNING of the block
+                # future_time = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*(internal_framecount-bufferlen)) #subtract bufferlen because I want the BEGINNING of the block
                 current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
                 # fprint("frame advantage START????", internal_framecount, current_framenumber, future_time-time.time(), time.time())
                 
@@ -303,7 +303,10 @@ def open_cvpipeline(*args):
                 #         )
                 #     testvar += 1
                 if len(analyzed_deque) == bufferlen and (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1):
+                    prebuilt_timerdeque_dict["update_shared_dict_init"] = newwritestart
                     dictwritetime = time.time()
+                    frame_numberA = analyzed_dequeKEYS[0]
+                    future_timeA = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*frame_numberA)
                     for x in range(bufferlen):
                         shared_analyzedVAR['frame'+str(x)] = analyzed_deque.popleft()
                         shared_analyzedKeycountVAR['key'+str(x)] = analyzed_dequeKEYS.popleft()
@@ -311,12 +314,12 @@ def open_cvpipeline(*args):
                         # shared_posedictKEYSVAR
                         
                         shared_timedictKEYSVAR['key'+str(x)] = timerdequekeys.popleft()
-                    prebuilt_timerdeque_dict["update_shared_dict_init"] = newwritestart
-                    prebuilt_timerdeque_dict["update_shared_dict_time_"] = time.time()-newwritestart
-                    prebuilt_timerdeque_dict["update_shared_dict_time_tentative_future"] = future_time
-                    prebuilt_timerdeque_dict["update_shared_dict_time_spare_future_time"+str(internal_framecount-bufferlen)] = future_time - time.time()
+                    prebuilt_timerdeque_dict["update_shared_dict_time_"] = time.time()-dictwritetime
+                    prebuilt_timerdeque_dict["update_shared_dict_time_tentative_future"] = future_timeA
+                    prebuilt_timerdeque_dict["update_shared_dict_time_spare_future_time"+str(frame_numberA)] = future_timeA - time.time()
 
                     shared_timedictVAR['totalinfo'] = prebuilt_timerdeque_dict
+                    shared_timedictVAR['PID'] = os.getpid()
                     prebuilt_timerdeque_dict.clear()
                     # fprint("updated shareddict", shared_analyzedKeycountVAR.values())
                 newwriteend = time.time()
@@ -324,6 +327,8 @@ def open_cvpipeline(*args):
                 afteranalyzetimestart = time.time()
                 # fprint("why is analyze not running", len(raw_deque), len(raw_deque) > 0, len(analyzed_deque) == 0)
                 if len(raw_deque) >= bufferlen and len(analyzed_deque) == 0:
+                    #NOTE: appliedcv_init IS NOT A TIMER HISTORY OF A FRAMEBLOCK! THIS IS JUST TIMER INFO OF THE TIMINGS OF THE CURRENT BATCH OF FRAMES!
+                    prebuilt_timerdeque_dict["appliedcv_init"] = afteranalyzetimestart
                     #give the deque to the cv func
                     #cv func returns a deque of frames
                     rtime = time.time()
@@ -341,19 +346,26 @@ def open_cvpipeline(*args):
                     otherhalf = time.time()
 
                     if len(resultdeque)> 0: #resultdeque can be none if seek occurs
+                        #get first frame# for appliedcv_time_total_spare_future calc:
+                        lastframecount = raw_dequeKEYS[0]
                         for x in range(len(resultdeque)):
+                            compressA = time.time()
                             result_compressed = resultdeque.popleft().tobytes()
                             result_compressed = blosc2.compress(result_compressed,filter=blosc2.Filter.SHUFFLE, codec=blosc2.Codec.LZ4)
+                            compressB = time.time()
                             
                             # https://stackoverflow.com/questions/48640251/how-to-peek-front-of-deque-without-popping
                             fprint("timerdeque len wtf?", len(timerdequekeys), len(raw_dequeKEYS)) #len is 0, wtf?
-                            prebuilt_timerdeque_dict["appliedcv_time_" + str(raw_dequeKEYS[0])] = otherhalf - rtime
+                            prebuilt_timerdeque_dict["appliedcv_time_compressonly" + str(raw_dequeKEYS[0])] = compressB - compressA
+                            future_timeB = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*raw_dequeKEYS[0])
+                            prebuilt_timerdeque_dict["appliedcv_time_spare_future_time" + str(raw_dequeKEYS[0])] = future_timeB - time.time()
 
                             analyzed_deque.append(result_compressed)
                             analyzed_dequeKEYS.append(raw_dequeKEYS.popleft())
-                        prebuilt_timerdeque_dict["appliedcv_init"] = afteranalyzetimestart
-                        prebuilt_timerdeque_dict["appliedcv_time_tentative_future" + str(internal_framecount-bufferlen)] = future_time
-                        prebuilt_timerdeque_dict["appliedcv_time_spare_future_time" + str(internal_framecount-bufferlen)] = future_time - time.time()
+                        future_timeC = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*lastframecount)
+                        prebuilt_timerdeque_dict["appliedcv_time_all_bufferlen_frames"] = otherhalf - rtime
+                        prebuilt_timerdeque_dict["appliedcv_time_total_spare_future" + str(internal_framecount-bufferlen)] = future_timeC - time.time()
+                        
                         #don't need to update keys
                     # fprint("analyzed keys???", [analyzed_dequeKEYS[x] for x in range(len(analyzed_dequeKEYS))], current_framenumber)
                 afteranalyzetime = time.time()
@@ -392,6 +404,7 @@ def open_cvpipeline(*args):
                     instance_count += 1
                     timeoog = time.time()
                     for x in range(bufferlen*maxpartitions):
+                        prebuilt_timerdeque_dict["subprocessREAD_init"] = timeoog
                         timegg = time.time()
                         (ret, framedata) = sourcecap.read()  #like .005 speed
                         # fprint("how fast is readin AFTER SEEK?", time.time() - timegg) #0.010001897811889648
@@ -415,9 +428,9 @@ def open_cvpipeline(*args):
 
                             #timerinfo
                             future_time_calc = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*keyinfo)
-                            prebuilt_timerdeque_dict["subprocessREAD_init"] = timeoog
+                            
                             prebuilt_timerdeque_dict["subprocessREAD_time_"+str(keyinfo)] = time.time() - timeoog
-                            prebuilt_timerdeque_dict["future_display_time_"+str(keyinfo)] = future_time_calc
+                            prebuilt_timerdeque_dict["future_display_spare_future_time"+str(keyinfo)] = future_time_calc - time.time()
                             timerdequekeys.append(keyinfo)
                             fprint("timerdequekeys len init", len(timerdequekeys))
 
@@ -609,7 +622,7 @@ class FCVA:
                 shared_analyzedAKeycount["key" + str(y)] = -1
                 shared_rawA["frame" + str(y)] = -1
                 shared_rawAKEYS["key" + str(y)] = -1
-                shared_timedict["frame" + str(y)] = -1
+                # shared_timedict["frame" + str(y)] = -1 #need a dict of all the phase timings
                 shared_timedictKEYS["key" + str(y)] = -1
                 shared_posedict["frame" + str(y)] = -1
                 shared_posedictKEYS["key" + str(y)] = -1
@@ -1017,8 +1030,15 @@ class FCVA:
                             correctkey = list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].keys())[list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()).index(self.index)]
                             frameref = "frame" + correctkey.replace("key",'')
                             frame = self.shared_pool_meta_list[shared_analyzedIndex][frameref]
-                            #print out info here I guess
-                            fprint("timerinfo + KEYS",[[z for z in xyz.items()] for xyz in self.shared_timedict_list])
+                            #EVERYTHING
+                            # fprint("timerinfo + KEYS",[[z for z in xyz.items()] for xyz in self.shared_timedict_list])
+                            #filtered info
+                            #first level: list of dicts [infodict, keysdict]
+                            #second level: ['totalinfo'] = prebuilt_timerdeque_dict
+                            #third level (in dict['totalinfo']): get the info u want 
+                            
+                            #ok so basically explanation is that shared_timedict_list is a list of dictionaries, one dictionary has what I want, then u make a list of correct keys and get that info. if u really need to know compare with fprint("timerinfo + KEYS",[[z for z in xyz.items()] for xyz in self.shared_timedict_list])
+                            fprint("timerinfo + KEYS",[[abc for abc in xyz['totalinfo'] if abc] for xyz in self.shared_timedict_list if 'totalinfo' in xyz.keys()])
                             # fprint("timerinfoKEYS",)
                         
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
