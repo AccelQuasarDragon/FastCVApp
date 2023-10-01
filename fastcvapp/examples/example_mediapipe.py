@@ -120,7 +120,7 @@ try:
             raw_dequeKEYSVAR = args[4]
             force_monotonic_increasingVAR = args[5]
             shared_posedictVAR2 = args[6]
-            pose_dequeVAR = args[7]
+            # pose_dequeVAR = args[7]
 
             # print("inputdequelenOG", len(inputdeque),flush = True)
             #reference: https://stackoverflow.com/questions/48640251/how-to-peek-front-of-deque-without-popping#:~:text=You%20can%20peek%20front%20element,right%20and%20seems%20efficient%20too.
@@ -154,6 +154,8 @@ try:
                 # peek_to_force_monotonically_increasing += 1
                 # print("increase wf??", os.getpid(), force_monotonic_increasingVAR, flush = True)
                 results = landmarkerVAR.detect_for_video(image, force_monotonic_increasingVAR) 
+                # pose_dequeVAR.append(results)
+                # print("resultsab", results)
                 force_monotonic_increasingVAR += 1
                 # results = landmarkerVAR.detect(image) 
                 

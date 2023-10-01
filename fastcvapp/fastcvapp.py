@@ -307,10 +307,11 @@ def open_cvpipeline(*args):
                     frame_numberA = analyzed_dequeKEYS[0]
                     future_timeA = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*frame_numberA)
                     for x in range(bufferlen):
+                        # shared_posedictVAR['frame'+str(x)] = pose_deque.popleft()
+                        #peek at analyzed_deque to match shared_analyzedKeycount but don't pop
+                        # shared_posedictKEYSVAR['key'+str(x)] = analyzed_dequeKEYS[0]
                         shared_analyzedVAR['frame'+str(x)] = analyzed_deque.popleft()
                         shared_analyzedKeycountVAR['key'+str(x)] = analyzed_dequeKEYS.popleft()
-                        # shared_posedictVAR
-                        # shared_posedictKEYSVAR
                         
                         shared_timedictKEYSVAR['key'+str(x)] = timerdequekeys.popleft()
                     prebuilt_timerdeque_dict["update_shared_dict_time_"] = time.time()-dictwritetime
@@ -1051,6 +1052,8 @@ class FCVA:
                             fprint("timerinfo + KEYS",[[abc for abc in xyz['totalinfo'].items() if ('appliedcv_time_total_spare_future' in str(abc[0]) or 'update_shared_dict_time_spare_future_time' in str(abc[0]))] for xyz in self.shared_timedict_list if 'totalinfo' in xyz.keys()])
                             # fprint("shared_posedictVAR2", [len(x) for x in self.shared_posedict_list])
                             fprint("shared_posedictVAR2", [x.keys() for x in self.shared_posedict_list])
+                            # fprint("shared_posedictVAR2", [x.keys() for x in self.shared_posedict_list])
+                            # fprint("shared_posedictVAR2", type(self.shared_posedict_list[shared_analyzedIndex][frameref])) #trying to match frame self.shared_analyzed
                         
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:
