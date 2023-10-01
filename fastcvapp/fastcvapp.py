@@ -141,8 +141,7 @@ def open_cvpipeline(*args):
         #timerdeque = deque(maxlen=bufferlen) #not needed, use prebuilt_timerdeque_dict instead since I want a batch of info, not a singular one
         prebuilt_timerdeque_dict = {}
         timerdequekeys = deque(maxlen=bufferlen)
-        posedeque = deque(maxlen=bufferlen)
-        posedequekeys = deque(maxlen=bufferlen)
+        pose_deque = deque(maxlen=bufferlen) #just need 1?
 
         #some examples do not require mediapipe, only load them when mediapipe has already been loaded
 
@@ -339,7 +338,16 @@ def open_cvpipeline(*args):
                         bufferlen, 
                         landmarker, 
                         raw_dequeKEYS, 
-                        force_monotonic_increasing)
+                        force_monotonic_increasing, 
+                        shared_posedictVAR, 
+                        pose_deque
+                        )
+                    
+                    #REAL QUESTION IS IF PROVIDING A DEQUE TO APPLIEDCV CAN I MODIFY THAT DEQUE AND NOT RETURN IT? PROBABLY RIGHT <-- IT DOES, so undo dequetesting and go hard tomorrow, fix todolist, buy stuff
+
+
+
+
                     force_monotonic_increasing += bufferlen  
                     # fprint("resultdeque timing (appliedcv)", time.time() - rtime,current_framenumber)
                     current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
@@ -1038,8 +1046,11 @@ class FCVA:
                             #third level (in dict['totalinfo']): get the info u want 
                             
                             #ok so basically explanation is that shared_timedict_list is a list of dictionaries, one dictionary has what I want, then u make a list of correct keys and get that info. if u really need to know compare with fprint("timerinfo + KEYS",[[z for z in xyz.items()] for xyz in self.shared_timedict_list])
-                            fprint("timerinfo + KEYS",[[abc for abc in xyz['totalinfo'] if abc] for xyz in self.shared_timedict_list if 'totalinfo' in xyz.keys()])
-                            # fprint("timerinfoKEYS",)
+                            #reminder that .items() turns things to tuples
+                            # fprint("timerinfo + KEYS",[[abc[0] for abc in xyz['totalinfo'].items()] for xyz in self.shared_timedict_list if 'totalinfo' in xyz.keys()])
+                            fprint("timerinfo + KEYS",[[abc for abc in xyz['totalinfo'].items() if ('appliedcv_time_total_spare_future' in str(abc[0]) or 'update_shared_dict_time_spare_future_time' in str(abc[0]))] for xyz in self.shared_timedict_list if 'totalinfo' in xyz.keys()])
+                            # fprint("shared_posedictVAR2", [len(x) for x in self.shared_posedict_list])
+                            fprint("shared_posedictVAR2", [x.keys() for x in self.shared_posedict_list])
                         
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:

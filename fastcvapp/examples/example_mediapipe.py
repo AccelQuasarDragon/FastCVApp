@@ -119,8 +119,12 @@ try:
             landmarkerVAR = args[3]
             raw_dequeKEYSVAR = args[4]
             force_monotonic_increasingVAR = args[5]
+            shared_posedictVAR2 = args[6]
+            pose_dequeVAR = args[7]
+
             # print("inputdequelenOG", len(inputdeque),flush = True)
             #reference: https://stackoverflow.com/questions/48640251/how-to-peek-front-of-deque-without-popping#:~:text=You%20can%20peek%20front%20element,right%20and%20seems%20efficient%20too.
+            raw_dequeKEYScount = 0
             peek_to_force_monotonically_increasing = 0
             while len(inputdeque) > 0:
                 
@@ -156,6 +160,8 @@ try:
                 #now draw on original image: 
                 fixed_image = draw_landmarks_on_image(ogimage, results)
                 answerdeque.append(fixed_image)
+                shared_posedictVAR2[raw_dequeKEYSVAR[raw_dequeKEYScount]] = results
+                raw_dequeKEYScount += 1
             # print("aqlenEND", len(answerdeque),flush = True)
             return answerdeque
 
