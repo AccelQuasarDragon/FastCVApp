@@ -307,9 +307,9 @@ def open_cvpipeline(*args):
                     frame_numberA = analyzed_dequeKEYS[0]
                     future_timeA = FCVAWidget_shared_metadata_dictVAR2["starttime"] + ((1/fps)*frame_numberA)
                     for x in range(bufferlen):
-                        # shared_posedictVAR['frame'+str(x)] = pose_deque.popleft()
+                        shared_posedictVAR['frame'+str(x)] = pose_deque.popleft()
                         #peek at analyzed_deque to match shared_analyzedKeycount but don't pop
-                        # shared_posedictKEYSVAR['key'+str(x)] = analyzed_dequeKEYS[0]
+                        shared_posedictKEYSVAR['key'+str(x)] = analyzed_dequeKEYS[0]
                         shared_analyzedVAR['frame'+str(x)] = analyzed_deque.popleft()
                         shared_analyzedKeycountVAR['key'+str(x)] = analyzed_dequeKEYS.popleft()
                         
@@ -340,7 +340,6 @@ def open_cvpipeline(*args):
                         landmarker, 
                         raw_dequeKEYS, 
                         force_monotonic_increasing, 
-                        shared_posedictVAR, 
                         pose_deque
                         )
                     
