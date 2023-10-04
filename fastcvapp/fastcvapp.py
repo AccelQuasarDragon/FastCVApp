@@ -611,6 +611,7 @@ class FCVA:
         FCVAWidget_shared_metadata_dictVAR  = args[8]
         shared_timedict_listVAR             = args[9]
         shared_posedict_listVAR             = args[10]
+        shared_camerapose_listVAR           = args[11]
         # fprint("check args for FCVAWidget_SubprocessInit", args)
         
         for x in range(cvpartitionsVAR):
@@ -623,6 +624,8 @@ class FCVA:
             shared_timedictKEYS      = shared_mem_managerVAR.dict()
             shared_posedict          = shared_mem_managerVAR.dict()
             shared_posedictKEYS      = shared_mem_managerVAR.dict()
+            shared_camerapose        = shared_mem_managerVAR.dict()
+            shared_cameraposeKEYS    = shared_mem_managerVAR.dict()
             
             #init dicts
             for y in range(bufferlenVAR):
@@ -654,6 +657,8 @@ class FCVA:
                     shared_timedictKEYS,
                     shared_posedict,
                     shared_posedictKEYS,
+                    shared_camerapose,
+                    shared_cameraposeKEYS,
                 ),
             )
             cv_subprocessA.start()
@@ -667,7 +672,11 @@ class FCVA:
             shared_timedict_listVAR.append(shared_timedictKEYS)
             shared_posedict_listVAR.append(shared_posedict)
             shared_posedict_listVAR.append(shared_posedictKEYS)
-        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocessVAR, shared_timedict_listVAR,shared_posedict_listVAR]
+            shared_camerapose_listVAR.append()
+        #start the camera comparison subprocess
+        #give self
+            
+        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocessVAR, shared_timedict_listVAR,shared_posedict_listVAR,shared_camera_posedictVAR]
 
     def FCVAWidgetInit(*args, ):#REMINDER: there is no self because I never instantiate a class with multiprocessing.process
         '''
@@ -724,6 +733,7 @@ class FCVA:
                 subprocess_list = []
                 shared_timedict_list = [] #dict + dict of keys
                 shared_posedict_list = [] #dict + dict of keys
+                shared_camerapose_list = [] #dict + dict of keys
 
                 self.FCVAWidget_shared_metadata_dict = shared_mem_manager.dict()
                 if hasattr(self, "source") and self.source != None:
@@ -767,7 +777,8 @@ class FCVA:
                     subprocess_list,
                     self.FCVAWidget_shared_metadata_dict,
                     shared_timedict_list,
-                    shared_posedict_list
+                    shared_posedict_list, 
+                    shared_camerapose_list,
                     )
                 #now set all the stuff that needs to be set from initdatalist:
                 #put this in the widget for later so I can exit at the end...
@@ -776,6 +787,7 @@ class FCVA:
                 self.dicts_per_subprocess =  initdatalist[2]
                 self.shared_timedict_list =  initdatalist[3]
                 self.shared_posedict_list =  initdatalist[4]
+                self.shared_camerapose_list = initdatalist[5]
                 # https://kivy.org/doc/stable/api-kivy.event.html#kivy.event.EventDispatcher.bind
                 Window.bind(on_drop_file=self._on_file_drop)
             
