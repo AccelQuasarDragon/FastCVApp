@@ -99,6 +99,24 @@ def int_to_partition(*args):
     maxpartitions = args[2]
     return int(((testint - (testint % bufferlen))/bufferlen)%maxpartitions)
 
+def open_camerapipeline(*args):
+    try:
+        shared_posedict_listVAR2 = args[0]
+        #open the correct camera (refer to open_cvpipeline)
+        camstream = cv2.VideoCapture(0)
+        while True:
+            #it needs to happen when you are blit buffering
+            #this func needs to access pose data somehow...
+            #go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
+            #compare 2 pose data
+            #get info from old A_DS version
+            #
+            pass
+    except Exception as e: 
+        print("open_appliedcv died!", e)
+        import traceback
+        print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
+
 def open_cvpipeline(*args):
     try:
         import sys
@@ -624,8 +642,6 @@ class FCVA:
             shared_timedictKEYS      = shared_mem_managerVAR.dict()
             shared_posedict          = shared_mem_managerVAR.dict()
             shared_posedictKEYS      = shared_mem_managerVAR.dict()
-            shared_camerapose        = shared_mem_managerVAR.dict()
-            shared_cameraposeKEYS    = shared_mem_managerVAR.dict()
             
             #init dicts
             for y in range(bufferlenVAR):
@@ -657,8 +673,6 @@ class FCVA:
                     shared_timedictKEYS,
                     shared_posedict,
                     shared_posedictKEYS,
-                    shared_camerapose,
-                    shared_cameraposeKEYS,
                 ),
             )
             cv_subprocessA.start()
@@ -672,11 +686,22 @@ class FCVA:
             shared_timedict_listVAR.append(shared_timedictKEYS)
             shared_posedict_listVAR.append(shared_posedict)
             shared_posedict_listVAR.append(shared_posedictKEYS)
-            shared_camerapose_listVAR.append()
         #start the camera comparison subprocess
         #give self
+        
+        shared_camerapose        = shared_mem_managerVAR.dict()
+        shared_cameraposeKEYS    = shared_mem_managerVAR.dict()
+
+        camera_subprocessA = FCVA_mpVAR.Process(
+            target=open_camerapipeline,
+            args=(
+                shared_posedict_listVAR
+            ),
+        )
+        camera_subprocessA.start()
+        shared_camerapose_listVAR.append(camera_subprocessA)
             
-        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocessVAR, shared_timedict_listVAR,shared_posedict_listVAR,shared_camera_posedictVAR]
+        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocessVAR, shared_timedict_listVAR, shared_posedict_listVAR, shared_camerapose_listVAR, ]
 
     def FCVAWidgetInit(*args, ):#REMINDER: there is no self because I never instantiate a class with multiprocessing.process
         '''
@@ -787,7 +812,8 @@ class FCVA:
                 self.dicts_per_subprocess =  initdatalist[2]
                 self.shared_timedict_list =  initdatalist[3]
                 self.shared_posedict_list =  initdatalist[4]
-                self.shared_camerapose_list = initdatalist[5]
+                self.shared_camera_subprocess_list = initdatalist[5]
+                self.shared_camerapose_list = initdatalist[6]
                 # https://kivy.org/doc/stable/api-kivy.event.html#kivy.event.EventDispatcher.bind
                 Window.bind(on_drop_file=self._on_file_drop)
             
