@@ -110,13 +110,14 @@ def open_camerapipeline(*args):
             #tbh, DO THINGS SEQUENTIALLY DUMBASS
             #1: run subprocess
             #2: make sure I get access to data
-            
+
             #3: get it to work
                 #it needs to happen when you are blit buffering
-                #this func needs to access pose data somehow...
+                #this func needs to access CORRECT pose data ...
                 #go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
+                #pose data from camera
                 #compare 2 pose data
-                #get info from old A_DS version
+                #get compare code from old A_DS version
                 #
             time.sleep(5)
             fprint("open_camerapipeline works")
