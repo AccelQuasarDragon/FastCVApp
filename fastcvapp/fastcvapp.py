@@ -105,19 +105,19 @@ def open_camerapipeline(*args):
         shared_posedict_listVAR2 = args[1]
         shared_cameraposedict_listVAR = args[2]
         #open the correct camera (refer to open_cvpipeline)
-        # camstream = cv2.VideoCapture(0)
+        camstream = cv2.VideoCapture(0)
         while True:
             #tbh, DO THINGS SEQUENTIALLY DUMBASS
             #1: run subprocess
             #2: make sure I get access to data
+            
             #3: get it to work
-
-            #it needs to happen when you are blit buffering
-            #this func needs to access pose data somehow...
-            #go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
-            #compare 2 pose data
-            #get info from old A_DS version
-            #
+                #it needs to happen when you are blit buffering
+                #this func needs to access pose data somehow...
+                #go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
+                #compare 2 pose data
+                #get info from old A_DS version
+                #
             time.sleep(5)
             fprint("open_camerapipeline works")
     except Exception as e: 
