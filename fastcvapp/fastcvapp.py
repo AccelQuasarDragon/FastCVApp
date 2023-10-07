@@ -1354,8 +1354,12 @@ FCVA_screen_manager: #remember to return a root widget
                         # fprint("dir", dir(FCVAWidget_instance))
                         fprint("?<>", FCVAWidget_instance, FCVAWidget_instance.ids)
 
+                        #subprocess that analyze video
                         for subprocessVAR in FCVAWidget_instance.ids["FCVAWidget_id"].subprocess_list:
-                            pass
+                            fprint("got to subprocess list", subprocessVAR)
+                            subprocessVAR.kill()
+                        #subprocess that deals with the camera
+                        for subprocessVAR in FCVAWidget_instance.ids["FCVAWidget_id"].shared_camerapose_list:
                             fprint("got to subprocess list", subprocessVAR)
                             subprocessVAR.kill()
 
