@@ -105,7 +105,7 @@ def open_camerapipeline(*args):
         shared_posedict_listVAR2 = args[1]
         shared_cameraposedict_listVAR = args[2]
         #open the correct camera (refer to open_cvpipeline)
-        camstream = cv2.VideoCapture(0)
+        # camstream = cv2.VideoCapture(0)
         while True:
             #tbh, DO THINGS SEQUENTIALLY DUMBASS
             #1: run subprocess
@@ -121,7 +121,7 @@ def open_camerapipeline(*args):
             time.sleep(5)
             fprint("open_camerapipeline works")
     except Exception as e: 
-        print("open_appliedcv died!", e)
+        print("open_camerapipeline died!", e)
         import traceback
         print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
 
@@ -1061,7 +1061,7 @@ class FCVA:
                     import traceback
                     print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
             
-            def blit_from_shared_mblitemory(self, *args):
+            def blit_from_shared_memory(self, *args):
                 try:
                     timeog = time.time()
                     # if "toggleCV" in self.FCVAWidget_shared_metadata_dict and self.FCVAWidget_shared_metadata_dict["starttime"] != None:
@@ -1353,14 +1353,15 @@ FCVA_screen_manager: #remember to return a root widget
                         # fprint("dict", FCVAWidget_instance.__dict__)
                         # fprint("dir", dir(FCVAWidget_instance))
                         fprint("?<>", FCVAWidget_instance, FCVAWidget_instance.ids)
+                        
+                        #subprocess that deals with the camera
+                        for subprocessVAR in FCVAWidget_instance.ids["FCVAWidget_id"].camera_subprocess_list:
+                            fprint("got to subprocess list CAMERA", subprocessVAR)
+                            subprocessVAR.kill()
 
                         #subprocess that analyze video
                         for subprocessVAR in FCVAWidget_instance.ids["FCVAWidget_id"].subprocess_list:
-                            fprint("got to subprocess list", subprocessVAR)
-                            subprocessVAR.kill()
-                        #subprocess that deals with the camera
-                        for subprocessVAR in FCVAWidget_instance.ids["FCVAWidget_id"].shared_camerapose_list:
-                            fprint("got to subprocess list", subprocessVAR)
+                            fprint("got to subprocess list CVFUNC", subprocessVAR)
                             subprocessVAR.kill()
 
                 def run(self):
