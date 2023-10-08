@@ -108,6 +108,13 @@ def open_camerapipeline(*args):
         shared_posedict_listVAR2 = args[1]
         shared_cameraposeVAR = args[2]
         shared_cameraposeKEYSVAR = args[3]
+        bufferlenVAR2 = args[4]
+        cvpartitionsVAR2 = args[5]
+        dicts_per_subprocessVAR = args[6]
+        fpsVAR2 = args[7]
+
+        spf = (1/fpsVAR2)
+
         #open the correct camera (refer to open_cvpipeline)
         camstream = cv2.VideoCapture(0)
         FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = 0
@@ -130,6 +137,21 @@ def open_camerapipeline(*args):
                 #
             if "starttime" in FCVAWidget_shared_metadata_dictVAR2.keys() and FCVAWidget_shared_metadata_dictVAR2["starttime"] != None and (time.time() > FCVAWidget_shared_metadata_dictVAR2["starttime"] + FCVAWidget_shared_metadata_dictVAR2["camerainterval"]):
                 fprint("open_camerapipeline works", FCVAWidget_shared_metadata_dictVAR2["starttime"], time.time(), FCVAWidget_shared_metadata_dictVAR2["camerainterval"])
+                #search for correct key -> get the frame
+
+                #==========================================
+                current_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)
+
+                shareddict_instance = int_to_partition(current_frame_number,bufferlenVAR2,cvpartitionsVAR2) 
+                # shared analyzed keycount is w.r.t. getting the right index when the index is self.cvpartitions-many of this sequence: shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS
+                shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
+                shared_analyzedIndex = frameblock(0,shareddict_instance,1,dicts_per_subprocessVAR)[0]
+
+                #==========================================
+                correctkey = list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].values()).index(current_frame_number)]
+                frameref = "frame" + correctkey.replace("key",'')
+                frame = shared_posedict_listVAR2[shared_analyzedIndex][frameref]
+                
                 fprint(compare_posedata())
                 FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
             else:
@@ -705,7 +727,7 @@ class FCVA:
             shared_pool_meta_listVAR.append(shared_analyzedAKeycount)
             shared_pool_meta_listVAR.append(shared_rawA)
             shared_pool_meta_listVAR.append(shared_rawAKEYS)
-            dicts_per_subprocessVAR = 4 #remember to update this if I add more shared dicts....
+            dicts_per_subprocess = 4 #remember to update this if I add more shared dicts....
             subprocess_listVAR.append(cv_subprocessA)
             shared_timedict_listVAR.append(shared_timedict)
             shared_timedict_listVAR.append(shared_timedictKEYS)
@@ -723,13 +745,17 @@ class FCVA:
                 FCVAWidget_shared_metadata_dictVAR,
                 shared_posedict_listVAR, 
                 shared_camerapose, 
-                shared_cameraposeKEYS
+                shared_cameraposeKEYS, 
+                bufferlenVAR, 
+                cvpartitionsVAR, 
+                dicts_per_subprocess,
+                fpsVAR, 
             ),
         )
         camera_subprocessA.start()
         camera_subprocess_listVAR.append(camera_subprocessA)
             
-        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocessVAR, shared_timedict_listVAR, shared_posedict_listVAR, camera_subprocess_listVAR, shared_cameraposedict_listVAR]
+        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocess, shared_timedict_listVAR, shared_posedict_listVAR, camera_subprocess_listVAR, shared_cameraposedict_listVAR]
 
     def FCVAWidgetInit(*args, ):#REMINDER: there is no self because I never instantiate a class with multiprocessing.process
         '''
@@ -767,7 +793,6 @@ class FCVA:
                 #YOU NEED TO MAKE SURE THE CODE THAT CALLS THIS HAS ALREADY MULTIPROCESSING FREEZE SUPPORT AND IS UNDER SOME GUARD LIKE IF NAME == MAIN
                 fprint("what is __name__?", __name__, "this should be bufferlen:", self.bufferlen)
                 #in my example I already import multiprocessing. so try if it exists first before I import it twice...
-                
                 try:
                     FCVA_mp.Manager()
                 except Exception as e: 
@@ -777,7 +802,6 @@ class FCVA:
                         fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")
                         # import traceback
                         # print("full exception (YOU CAN IGNORE THIS, just testing if multiprocess/multiprocessing has already been imported)", "".join(traceback.format_exception(*sys.exc_info())))
-                
                 self.starttime = None
                 self.spf = (1/self.fps)
 
@@ -801,7 +825,6 @@ class FCVA:
                 else: #default to 3 and say so
                     self.FCVAWidget_shared_metadata_dict["bufferwaitVAR2"] = 3
                     fprint(f"bufferwaitVAR2 defaulted to self.FCVAWidget_shared_metadata_dict['bufferwaitVAR2']")
-
                 # well, change of plans, opencv can't tell you the colorspace:
                 # so just blindly believe the user
                 # https://stackoverflow.com/a/2137355
@@ -839,7 +862,8 @@ class FCVA:
                 #put this in the widget for later so I can exit at the end...
                 self.shared_pool_meta_list = initdatalist[0]
                 self.subprocess_list = initdatalist[1]
-                self.dicts_per_subprocess =  initdatalist[2]
+                #what happened? This is not the original dicts_per_subprocess, the original actually comes from FCVAWidget_SubprocessInit. need to make it match later
+                self.dicts_per_subprocessVAR =  initdatalist[2]
                 self.shared_timedict_list =  initdatalist[3]
                 self.shared_posedict_list =  initdatalist[4]
                 self.camera_subprocess_list = initdatalist[5]
@@ -886,7 +910,6 @@ class FCVA:
                     mybuttonregret.bind(on_release=popup.dismiss)
                     popup.open()
 
-
             def on_touch_up(self, touch):
                 #make sure cv is loaded before doing anything:
                 if len(self.subprocess_list) == self.cvpartitions and len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions:
@@ -910,7 +933,6 @@ class FCVA:
                     box.add_widget(mybuttonregret)
                     mybuttonregret.bind(on_release=popup.dismiss)
                     popup.open()
-
 
             def updateSliderData(self, *args):
                 '''
@@ -1095,8 +1117,8 @@ class FCVA:
                         frame = None
                         shareddict_instance = int_to_partition(self.index,self.bufferlen,self.cvpartitions) 
                         # shared analyzed keycount is w.r.t. getting the right index when the index is self.cvpartitions-many of this sequence: shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS
-                        shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,self.dicts_per_subprocess)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
-                        shared_analyzedIndex = frameblock(0,shareddict_instance,1,self.dicts_per_subprocess)[0]
+                        shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,self.dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
+                        shared_analyzedIndex = frameblock(0,shareddict_instance,1,self.dicts_per_subprocessVAR)[0]
                         # fprint("valtesting1", self.index, shareddict_instance,shared_analyzedKeycountIndex, len(self.shared_pool_meta_list), shared_analyzedIndex)
                         # fprint("valtesting2", self.index, self.shared_pool_meta_list[shared_analyzedKeycountIndex].values(), [z.values() for z in self.shared_pool_meta_list if not isinstance(z.values()[0], bytes)])
                         # fprint("valtesting2", self.index, shared_analyzedKeycountIndex)
