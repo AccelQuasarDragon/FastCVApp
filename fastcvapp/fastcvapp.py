@@ -99,28 +99,43 @@ def int_to_partition(*args):
     maxpartitions = args[2]
     return int(((testint - (testint % bufferlen))/bufferlen)%maxpartitions)
 
+def compare_posedata(*args):
+    return "compared 2 pose data!"
+
 def open_camerapipeline(*args):
     try:
         FCVAWidget_shared_metadata_dictVAR2 = args[0]
         shared_posedict_listVAR2 = args[1]
-        shared_cameraposedict_listVAR = args[2]
+        shared_cameraposeVAR = args[2]
+        shared_cameraposeKEYSVAR = args[3]
         #open the correct camera (refer to open_cvpipeline)
         camstream = cv2.VideoCapture(0)
+        FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = 0
         while True:
             #tbh, DO THINGS SEQUENTIALLY DUMBASS
             #1: run subprocess
             #2: make sure I get access to data
 
             #3: get it to work
-                #it needs to happen when you are blit buffering
-                #this func needs to access CORRECT pose data ...
-                #go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
-                #pose data from camera
-                #compare 2 pose data
-                #get compare code from old A_DS version
+                # it needs to happen when you are blit buffering
+
+                # need to sync somehow? or just have this indep?
+                    # ANSWER: SYNC TO STARTTIME
+                # this func needs to access CORRECT pose data ...
+                # go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
+                # pose data from camera
+                # compare 2 pose data
+                    #when you take pose data add a time to it, framedata from video already has time implicitly through the frame and starttime
+                # get compare code from old A_DS version
                 #
-            time.sleep(5)
-            fprint("open_camerapipeline works")
+            if "starttime" in FCVAWidget_shared_metadata_dictVAR2.keys() and FCVAWidget_shared_metadata_dictVAR2["starttime"] != None and (time.time() > FCVAWidget_shared_metadata_dictVAR2["starttime"] + FCVAWidget_shared_metadata_dictVAR2["camerainterval"]):
+                fprint("open_camerapipeline works", FCVAWidget_shared_metadata_dictVAR2["starttime"], time.time(), FCVAWidget_shared_metadata_dictVAR2["camerainterval"])
+                fprint(compare_posedata())
+                FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
+            else:
+                fprint("checking for blit works (it's off)")
+                time.sleep(1)
+                
     except Exception as e: 
         print("open_camerapipeline died!", e)
         import traceback
@@ -707,7 +722,8 @@ class FCVA:
             args=(
                 FCVAWidget_shared_metadata_dictVAR,
                 shared_posedict_listVAR, 
-                shared_cameraposedict_listVAR, 
+                shared_camerapose, 
+                shared_cameraposeKEYS
             ),
         )
         camera_subprocessA.start()
@@ -1087,6 +1103,7 @@ class FCVA:
 
                         if self.index in self.shared_pool_meta_list[shared_analyzedKeycountIndex].values():
                             # fprint("valtesting3", self.index, list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()))
+                            # note: i thought this was lazy but it is not. this is because u don't always start from frame 0 (aka seek) but you DO KNOW that the framekey is correct info. from framekey info u then get correct frameref 
                             correctkey = list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].keys())[list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()).index(self.index)]
                             frameref = "frame" + correctkey.replace("key",'')
                             frame = self.shared_pool_meta_list[shared_analyzedIndex][frameref]
