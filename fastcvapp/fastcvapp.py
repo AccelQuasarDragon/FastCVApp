@@ -161,7 +161,7 @@ def open_camerapipeline(*args):
                     fprint("key does not exist:", future_frame_number, "???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].values() )
                     pass
             else:
-                # fprint("checking for blit works (it's off)")
+                fprint("checking for blit works (it's off)")
                 time.sleep(0.25)
                 
     except Exception as e: 
@@ -1260,12 +1260,12 @@ class FCVA:
                         #now to update future image:
                         self.texture2 = Texture.create(
                             size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
-                        fprint("cameraposelist", self.shared_camerapose_list)
-                        buf2 = self.shared_camerapose_list[0]["futureframe"].tobytes()
-                        self.texture2.blit_buffer(buf2, colorfmt="rgb", bufferfmt="ubyte")
-                        self.ids[
-                                "future_textureID"
-                            ].texture = self.texture2
+                        fprint("cameraposelist", self.shared_camerapose_list[0].keys())
+                        # buf2 = self.shared_camerapose_list[0]["futureframe"].tobytes()
+                        # self.texture2.blit_buffer(buf2, colorfmt="rgb", bufferfmt="ubyte")
+                        # self.ids[
+                        #         "future_textureID"
+                        #     ].texture = self.texture2
 
                     self.newt = time.time()
                     if hasattr(self, 'newt'):
