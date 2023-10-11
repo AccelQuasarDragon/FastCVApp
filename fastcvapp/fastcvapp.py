@@ -146,7 +146,7 @@ def open_camerapipeline(*args):
                 show_analysis_time = 1
                 video_time = (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])
                 test_time = video_time % (show_future_pose_time + show_analysis_time)
-                if video_time < show_future_pose_time:
+                if test_time < show_future_pose_time:
                     #find next frame
                 else:
                     pass
