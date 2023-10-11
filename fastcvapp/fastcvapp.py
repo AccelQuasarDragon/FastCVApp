@@ -141,6 +141,16 @@ def open_camerapipeline(*args):
                 #search for correct key -> get the frame
 
                 #==========================================
+                #target: 30, 90, 150, etc... this gives 1 sec to show, 1 sec to show analysis.
+                show_future_pose_time = 1
+                show_analysis_time = 1
+                video_time = (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])
+                test_time = video_time % (show_future_pose_time + show_analysis_time)
+                if video_time < show_future_pose_time:
+                    #find next frame
+                else:
+                    pass
+                    #show pose collision
                 future_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)+30
 
                 shareddict_instance = int_to_partition(future_frame_number,bufferlenVAR2,cvpartitionsVAR2) 
