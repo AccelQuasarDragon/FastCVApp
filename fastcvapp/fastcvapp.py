@@ -166,6 +166,8 @@ def open_camerapipeline(*args):
                 #==========================================
                 try:
                     #problem is that this always fails, wtf (since it's triggering too early for analyze subprocesses to work)
+                    # fprint("leys???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())
+                    fprint("leys???", len(shared_posedict_listVAR2), shared_analyzedKeycountIndex,"ffn", future_frame_number, shareddict_instance ,shared_analyzedKeycountIndex ,shared_analyzedIndex )
                     correctkey = list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
                     frameref = "frame" + correctkey.replace("key",'')
                     frame = shared_posedict_listVAR2[shared_analyzedIndex][frameref]
