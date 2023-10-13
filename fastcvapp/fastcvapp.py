@@ -181,7 +181,7 @@ def open_camerapipeline(*args):
                     fprint("key does not exist:", future_frame_number, "???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].values() )
                     pass
             else:
-                fprint("checking for blit works (it's off)")
+                # fprint("checking for blit works (it's off)")
                 time.sleep(0.25)
                 
     except Exception as e: 
@@ -1272,21 +1272,26 @@ class FCVA:
                                 # fprint("texture blit entire sequence", time.time()-ggtime) #~8ms... 0.006002187728881836 0.006994962692260742 0.007999658584594727
                                 #here update the slider with self.index
                                 self.ids['vidsliderID'].value = self.index
+
+                            # fprint("frame/ is this func run multiply no way?????", self.index)
+                            #now to update future image:
+                            self.texture2 = Texture.create(
+                                size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
+                            fprint("cameraposelist", self.shared_camerapose_list[0].keys(), "does future_textureID exist?", self.ids["devLayoutID"], self.ids["future_textureID"], (frame.shape[1], frame.shape[0]) )
+                            #DNE: self.ids["devLayoutID"].ids["future_textureID"]
+                            
+                            if 'futureframe' in self.shared_camerapose_list[0].keys():
+                                buf2copy = self.shared_camerapose_list[0]["futureframe"]
+                                buf2 = blosc2.decompress(buf2copy)
+                                self.texture2.blit_buffer(buf2, colorfmt="bgr", bufferfmt="ubyte")
+                                self.ids[
+                                        "future_textureID"
+                                    ].texture = self.texture2
                         else:
                             if self.index != 0:
                                 # fprint("missed frame#", self.index, self.shared_pool_meta_listVAR[shared_analyzedKeycountIndex].values())
                                 # fprint("missed frame#", self.index)
                                 pass
-                        # fprint("frame/ is this func run multiply no way?????", self.index)
-                        #now to update future image:
-                        self.texture2 = Texture.create(
-                            size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
-                        fprint("cameraposelist", self.shared_camerapose_list[0].keys())
-                        # buf2 = self.shared_camerapose_list[0]["futureframe"].tobytes()
-                        # self.texture2.blit_buffer(buf2, colorfmt="rgb", bufferfmt="ubyte")
-                        # self.ids[
-                        #         "future_textureID"
-                        #     ].texture = self.texture2
 
                     self.newt = time.time()
                     if hasattr(self, 'newt'):
@@ -1317,6 +1322,7 @@ class FCVA:
     Image:
         id: image_textureID
     BoxLayout:
+        id: devLayoutID
         orientation: 'horizontal'
         Image:
             id: future_textureID
