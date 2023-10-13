@@ -3,6 +3,7 @@ import cv2
 import time
 import os, sys
 import numpy as np
+import math
 '''
 2 things:
 from proj
@@ -118,6 +119,7 @@ def open_camerapipeline(*args):
         #open the correct camera (refer to open_cvpipeline)
         camstream = cv2.VideoCapture(0)
         FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = 0
+        future_test_frame = None
         while True:
             #tbh, DO THINGS SEQUENTIALLY DUMBASS
             #1: run subprocess
@@ -146,13 +148,16 @@ def open_camerapipeline(*args):
                 show_analysis_time = 1
                 video_time = (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])
                 test_time = video_time % (show_future_pose_time + show_analysis_time)
-                if test_time < show_future_pose_time:
+                if test_time < show_future_pose_time and future_test_frame == None:
+                    current_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)
                     #find next frame
+                    future_frame_number = current_frame_number + math.ceil(((show_future_pose_time - test_time)/spf))
+                    fprint ("timings", current_frame_number, future_frame_number, video_time, test_time, show_future_pose_time, show_analysis_time, "fps??", fpsVAR2)
                 else:
                     pass
+                    future_test_frame = None
                     #show pose collision
-                future_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)+30
-
+                
                 shareddict_instance = int_to_partition(future_frame_number,bufferlenVAR2,cvpartitionsVAR2) 
                 # shared analyzed keycount is w.r.t. getting the right index when the index is self.cvpartitions-many of this sequence: shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS
                 shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
@@ -160,6 +165,7 @@ def open_camerapipeline(*args):
 
                 #==========================================
                 try:
+                    #problem is that this always fails, wtf (since it's triggering too early for analyze subprocesses to work)
                     correctkey = list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
                     frameref = "frame" + correctkey.replace("key",'')
                     frame = shared_posedict_listVAR2[shared_analyzedIndex][frameref]
