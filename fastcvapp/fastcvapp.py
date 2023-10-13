@@ -113,6 +113,7 @@ def open_camerapipeline(*args):
         cvpartitionsVAR2 = args[5]
         dicts_per_subprocessVAR = args[6]
         fpsVAR2 = args[7]
+        shared_pool_meta_listVAR2 = args[8]
 
         spf = (1/fpsVAR2)
 
@@ -160,6 +161,7 @@ def open_camerapipeline(*args):
                 
                 shareddict_instance = int_to_partition(future_frame_number,bufferlenVAR2,cvpartitionsVAR2) 
                 # shared analyzed keycount is w.r.t. getting the right index when the index is self.cvpartitions-many of this sequence: shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS
+                # 1,2,1,4
                 shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
                 shared_analyzedIndex = frameblock(0,shareddict_instance,1,dicts_per_subprocessVAR)[0]
 
@@ -167,10 +169,10 @@ def open_camerapipeline(*args):
                 try:
                     #problem is that this always fails, wtf (since it's triggering too early for analyze subprocesses to work)
                     # fprint("leys???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())
-                    fprint("leys???", len(shared_posedict_listVAR2), shared_analyzedKeycountIndex,"ffn", future_frame_number, shareddict_instance ,shared_analyzedKeycountIndex ,shared_analyzedIndex )
-                    correctkey = list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_posedict_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
+                    fprint("leys???", len(shared_pool_meta_listVAR2), shared_analyzedKeycountIndex,"ffn", future_frame_number, "instance", shareddict_instance, bufferlenVAR2, cvpartitionsVAR2 ,shared_analyzedKeycountIndex ,shared_analyzedIndex, "dicts_per_subprocessVAR", dicts_per_subprocessVAR, "block?", frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR))
+                    correctkey = list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
                     frameref = "frame" + correctkey.replace("key",'')
-                    frame = shared_posedict_listVAR2[shared_analyzedIndex][frameref]
+                    frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
                     
                     fprint(compare_posedata())
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
@@ -774,6 +776,7 @@ class FCVA:
                 cvpartitionsVAR, 
                 dicts_per_subprocess,
                 fpsVAR, 
+                shared_pool_meta_listVAR
             ),
         )
         camera_subprocessA.start()
@@ -1154,6 +1157,7 @@ class FCVA:
                             correctkey = list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].keys())[list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()).index(self.index)]
                             frameref = "frame" + correctkey.replace("key",'')
                             frame = self.shared_pool_meta_list[shared_analyzedIndex][frameref]
+                            fprint("don't tell me shared_pool_meta_list grows forever...", len(self.shared_pool_meta_list))
                             #EVERYTHING
                             # fprint("timerinfo + KEYS",[[z for z in xyz.items()] for xyz in self.shared_timedict_list])
                             #filtered info
