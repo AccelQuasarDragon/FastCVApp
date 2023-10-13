@@ -1157,7 +1157,6 @@ class FCVA:
                             correctkey = list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].keys())[list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()).index(self.index)]
                             frameref = "frame" + correctkey.replace("key",'')
                             frame = self.shared_pool_meta_list[shared_analyzedIndex][frameref]
-                            fprint("don't tell me shared_pool_meta_list grows forever...", len(self.shared_pool_meta_list))
                             #EVERYTHING
                             # fprint("timerinfo + KEYS",[[z for z in xyz.items()] for xyz in self.shared_timedict_list])
                             #filtered info
