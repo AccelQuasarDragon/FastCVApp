@@ -179,7 +179,7 @@ def open_camerapipeline(*args):
                     shared_cameraposeVAR["futureframe"] = frame
                     fprint("chose new frame!", current_frame_number,future_frame_number)
                 except:
-                    fprint("key does not exist:", future_frame_number, "???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].values() )
+                    fprint("key does not exist:", future_frame_number, "???", shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values() )
                     pass
             else:
                 # fprint("checking for blit works (it's off)")
@@ -1290,6 +1290,7 @@ class FCVA:
                                 self.ids[
                                         "future_textureID"
                                     ].texture = self.texture2
+                            fprint("blitting or not?")
                         else:
                             if self.index != 0:
                                 # fprint("missed frame#", self.index, self.shared_pool_meta_listVAR[shared_analyzedKeycountIndex].values())
