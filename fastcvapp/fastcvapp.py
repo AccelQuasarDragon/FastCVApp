@@ -1274,8 +1274,7 @@ class FCVA:
                                 #here update the slider with self.index
                                 self.ids['vidsliderID'].value = self.index
 
-                            # fprint("frame/ is this func run multiply no way?????", self.index)
-                            #now to update future image:
+                            #now to update future source image:
                             self.texture2 = Texture.create(
                                 size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
                             fprint("cameraposelist", self.shared_camerapose_list[0].keys(), "does future_textureID exist?", self.ids["devLayoutID"], self.ids["future_textureID"], (frame.shape[1], frame.shape[0]) )
@@ -1284,6 +1283,9 @@ class FCVA:
                             if 'futureframe' in self.shared_camerapose_list[0].keys():
                                 buf2copy = self.shared_camerapose_list[0]["futureframe"]
                                 buf2 = blosc2.decompress(buf2copy)
+                                frame2 = np.frombuffer(buf2, np.uint8).copy().reshape(frameheight, framewidth, 3)
+                                frame2 = cv2.flip(frame2, 0)
+                                buf2 = frame2.tobytes()
                                 self.texture2.blit_buffer(buf2, colorfmt="bgr", bufferfmt="ubyte")
                                 self.ids[
                                         "future_textureID"
