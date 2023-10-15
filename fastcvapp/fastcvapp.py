@@ -392,8 +392,7 @@ def open_cvpipeline(*args):
                 #             (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps)
                 #         )
                 #     testvar += 1
-                fprint("why no updating?", len(analyzed_deque), bufferlen, len(analyzed_deque) == bufferlen, max(shared_analyzedKeycountVAR.values()) <= current_framenumber, max(shared_analyzedKeycountVAR.values()) == -1,
-                       (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1))
+                # fprint("why no updating?", len(analyzed_deque), bufferlen, len(analyzed_deque) == bufferlen, max(shared_analyzedKeycountVAR.values()) <= current_framenumber, max(shared_analyzedKeycountVAR.values()) == -1, x(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1))
                 if len(analyzed_deque) == bufferlen and (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1):
                     prebuilt_timerdeque_dict["update_shared_dict_init"] = newwritestart
                     dictwritetime = time.time()
@@ -513,7 +512,7 @@ def open_cvpipeline(*args):
                             framewidth = FCVAWidget_shared_metadata_dictVAR2["fdimension"][0]
                             frameheight = FCVAWidget_shared_metadata_dictVAR2["fdimension"][1] 
                             # framedata = cv2.resize(framedata, (1280, 720))
-                            fprint("dimension types cv", type(framewidth), framewidth, type(frameheight), frameheight)
+                            fprint("dimension types cv", type(framewidth), framewidth, type(frameheight), frameheight, "ORIGINAL SIZE: (in case it's 4k)", framedata.shape)
                             framedata = cv2.resize(framedata, (framewidth, frameheight))
                             # framedata = cv2.resize(framedata, (1920, 1080))
                             # framedata = cv2.resize(framedata, (640, 480))
