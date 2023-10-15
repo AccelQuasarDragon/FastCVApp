@@ -121,69 +121,69 @@ def open_camerapipeline(*args):
         camstream = cv2.VideoCapture(0)
         FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = 0
         future_test_frame = None
-        # while True:
-        #     #tbh, DO THINGS SEQUENTIALLY DUMBASS
-        #     #1: run subprocess
-        #     #2: make sure I get access to data
+        while True:
+            #tbh, DO THINGS SEQUENTIALLY DUMBASS
+            #1: run subprocess
+            #2: make sure I get access to data
 
-        #     #3: get it to work
-        #         # it needs to happen when you are blit buffering
+            #3: get it to work
+                # it needs to happen when you are blit buffering
 
-        #         # need to sync somehow? or just have this indep?
-        #             # ANSWER: SYNC TO STARTTIME
-        #         # this func needs to access CORRECT pose data ...
-        #         # go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
-        #         # pose data from camera
-        #         # compare 2 pose data
-        #             #when you take pose data add a time to it, framedata from video already has time implicitly through the frame and starttime
-        #         # get compare code from old A_DS version
-        #         #
-        #     if "starttime" in FCVAWidget_shared_metadata_dictVAR2.keys() and FCVAWidget_shared_metadata_dictVAR2["starttime"] != None and (time.time() > FCVAWidget_shared_metadata_dictVAR2["starttime"] + FCVAWidget_shared_metadata_dictVAR2["camerainterval"]):
+                # need to sync somehow? or just have this indep?
+                    # ANSWER: SYNC TO STARTTIME
+                # this func needs to access CORRECT pose data ...
+                # go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
+                # pose data from camera
+                # compare 2 pose data
+                    #when you take pose data add a time to it, framedata from video already has time implicitly through the frame and starttime
+                # get compare code from old A_DS version
+                #
+            if "starttime" in FCVAWidget_shared_metadata_dictVAR2.keys() and FCVAWidget_shared_metadata_dictVAR2["starttime"] != None and (time.time() > FCVAWidget_shared_metadata_dictVAR2["starttime"] + FCVAWidget_shared_metadata_dictVAR2["camerainterval"]):
 
-        #         # fprint("open_camerapipeline works", FCVAWidget_shared_metadata_dictVAR2["starttime"], time.time(), FCVAWidget_shared_metadata_dictVAR2["camerainterval"])
-        #         #search for correct key -> get the frame
+                # fprint("open_camerapipeline works", FCVAWidget_shared_metadata_dictVAR2["starttime"], time.time(), FCVAWidget_shared_metadata_dictVAR2["camerainterval"])
+                #search for correct key -> get the frame
 
-        #         #==========================================
-        #         #target: 30, 90, 150, etc... this gives 1 sec to show, 1 sec to show analysis.
-        #         show_future_pose_time = 1
-        #         show_analysis_time = 1
-        #         video_time = (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])
-        #         test_time = video_time % (show_future_pose_time + show_analysis_time)
-        #         if test_time < show_future_pose_time and future_test_frame == None:
-        #             current_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)
-        #             #find next frame
-        #             future_frame_number = current_frame_number + math.ceil(((show_future_pose_time - test_time)/spf))
-        #             fprint ("timings", current_frame_number, future_frame_number, video_time, test_time, show_future_pose_time, show_analysis_time, "fps??", fpsVAR2)
-        #         else:
-        #             pass
-        #             future_test_frame = None
-        #             #show pose collision
+                #==========================================
+                #target: 30, 90, 150, etc... this gives 1 sec to show, 1 sec to show analysis.
+                show_future_pose_time = 1
+                show_analysis_time = 1
+                video_time = (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])
+                test_time = video_time % (show_future_pose_time + show_analysis_time)
+                if test_time < show_future_pose_time and future_test_frame == None:
+                    current_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)
+                    #find next frame
+                    future_frame_number = current_frame_number + math.ceil(((show_future_pose_time - test_time)/spf))
+                    fprint ("timings", current_frame_number, future_frame_number, video_time, test_time, show_future_pose_time, show_analysis_time, "fps??", fpsVAR2)
+                else:
+                    pass
+                    future_test_frame = None
+                    #show pose collision
                 
-        #         shareddict_instance = int_to_partition(future_frame_number,bufferlenVAR2,cvpartitionsVAR2) 
-        #         # shared analyzed keycount is w.r.t. getting the right index when the index is self.cvpartitions-many of this sequence: shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS
-        #         # 1,2,1,4
-        #         shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
-        #         shared_analyzedIndex = frameblock(0,shareddict_instance,1,dicts_per_subprocessVAR)[0]
+                shareddict_instance = int_to_partition(future_frame_number,bufferlenVAR2,cvpartitionsVAR2) 
+                # shared analyzed keycount is w.r.t. getting the right index when the index is self.cvpartitions-many of this sequence: shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS
+                # 1,2,1,4
+                shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
+                shared_analyzedIndex = frameblock(0,shareddict_instance,1,dicts_per_subprocessVAR)[0]
 
-        #         #==========================================
-        #         try:
-        #             #problem is that this always fails, wtf (since it's triggering too early for analyze subprocesses to work)
-        #             # fprint("leys???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())
-        #             fprint("leys???", len(shared_pool_meta_listVAR2), shared_analyzedKeycountIndex,"ffn", future_frame_number, "instance", shareddict_instance, bufferlenVAR2, cvpartitionsVAR2 ,shared_analyzedKeycountIndex ,shared_analyzedIndex, "dicts_per_subprocessVAR", dicts_per_subprocessVAR, "block?", frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR))
-        #             correctkey = list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
-        #             frameref = "frame" + correctkey.replace("key",'')
-        #             frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
+                #==========================================
+                try:
+                    #problem is that this always fails, wtf (since it's triggering too early for analyze subprocesses to work)
+                    # fprint("leys???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())
+                    fprint("leys???", len(shared_pool_meta_listVAR2), shared_analyzedKeycountIndex,"ffn", future_frame_number, "instance", shareddict_instance, bufferlenVAR2, cvpartitionsVAR2 ,shared_analyzedKeycountIndex ,shared_analyzedIndex, "dicts_per_subprocessVAR", dicts_per_subprocessVAR, "block?", frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR))
+                    correctkey = list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
+                    frameref = "frame" + correctkey.replace("key",'')
+                    frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
                     
-        #             fprint(compare_posedata())
-        #             FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
-        #             shared_cameraposeVAR["futureframe"] = frame
-        #             fprint("chose new frame!", current_frame_number,future_frame_number)
-        #         except:
-        #             fprint("key does not exist:", future_frame_number, "???", shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values() )
-        #             pass
-        #     else:
-        #         # fprint("checking for blit works (it's off)")
-        #         time.sleep(0.25)
+                    fprint(compare_posedata())
+                    FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
+                    shared_cameraposeVAR["futureframe"] = frame
+                    fprint("chose new frame!", current_frame_number,future_frame_number)
+                except:
+                    fprint("key does not exist:", future_frame_number, "???", shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values() )
+                    pass
+            else:
+                # fprint("checking for blit works (it's off)")
+                time.sleep(0.25)
                 
     except Exception as e: 
         print("open_camerapipeline died!", e)
@@ -1271,23 +1271,23 @@ class FCVA:
                                 #here update the slider with self.index
                                 self.ids['vidsliderID'].value = self.index
 
-                            # #now to update future source image:
-                            # self.texture2 = Texture.create(
-                            #     size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
-                            # fprint("cameraposelist", self.shared_camerapose_list[0].keys(), "does future_textureID exist?", self.ids["devLayoutID"], self.ids["future_textureID"], (frame.shape[1], frame.shape[0]) )
-                            # #DNE: self.ids["devLayoutID"].ids["future_textureID"]
+                            #now to update future source image:
+                            self.texture2 = Texture.create(
+                                size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
+                            fprint("cameraposelist", self.shared_camerapose_list[0].keys(), "does future_textureID exist?", self.ids["devLayoutID"], self.ids["future_textureID"], (frame.shape[1], frame.shape[0]) )
+                            #DNE: self.ids["devLayoutID"].ids["future_textureID"] but the raw "future_textureID" does
                             
-                            # if 'futureframe' in self.shared_camerapose_list[0].keys():
-                            #     buf2copy = self.shared_camerapose_list[0]["futureframe"]
-                            #     buf2 = blosc2.decompress(buf2copy)
-                            #     frame2 = np.frombuffer(buf2, np.uint8).copy().reshape(frameheight, framewidth, 3)
-                            #     frame2 = cv2.flip(frame2, 0)
-                            #     buf2 = frame2.tobytes()
-                            #     self.texture2.blit_buffer(buf2, colorfmt="bgr", bufferfmt="ubyte")
-                            #     self.ids[
-                            #             "future_textureID"
-                            #         ].texture = self.texture2
-                            # fprint("blitting or not?")
+                            if 'futureframe' in self.shared_camerapose_list[0].keys():
+                                buf2copy = self.shared_camerapose_list[0]["futureframe"]
+                                buf2 = blosc2.decompress(buf2copy)
+                                frame2 = np.frombuffer(buf2, np.uint8).copy().reshape(frameheight, framewidth, 3)
+                                frame2 = cv2.flip(frame2, 0)
+                                buf2 = frame2.tobytes()
+                                self.texture2.blit_buffer(buf2, colorfmt="bgr", bufferfmt="ubyte")
+                                self.ids[
+                                        "future_textureID"
+                                    ].texture = self.texture2
+                            fprint("blitting or not?")
                         else:
                             if self.index != 0:
                                 # fprint("missed frame#", self.index, self.shared_pool_meta_listVAR[shared_analyzedKeycountIndex].values())
