@@ -164,6 +164,8 @@ def open_camerapipeline(*args):
                 # 1,2,1,4
                 shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
                 shared_analyzedIndex = frameblock(0,shareddict_instance,1,dicts_per_subprocessVAR)[0]
+                shared_posedict_index = frameblock(0,shareddict_instance,1,1)[0]
+                #difference between this and shared_analyzedIndex/shared_analyzedKeycountIndex is that the setup in shared_pool_meta_list is a block of [shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS] whereas shared_posedict_list is just [poseA, poseB, poseC] up until the max amount of cvpartitionsVAR2
 
                 #==========================================
                 try:
@@ -175,6 +177,8 @@ def open_camerapipeline(*args):
                     frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
                     frame_posedata = shared_pool_meta_listVAR2[shared_analyzedKeycountIndex][correctkey]
                     fprint("frameposedata?", frame_posedata)
+                    #look at shared_posedict_listVAR2
+                    #problem is it's formatted differently
                     
                     fprint(compare_posedata())
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
