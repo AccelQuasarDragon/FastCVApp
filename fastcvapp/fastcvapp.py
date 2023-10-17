@@ -210,7 +210,84 @@ def open_mediapipe_helper(*args):
     (make the landmarker code into another callable function open_mediapipe_helper, then in cvfunc and camerapipeline do: landmarker = open_mediapipe_helper() and if there's more vars do: landmarker, var1, var2 = open_mediapipe_helper() and open_mediapipe_helper returns them as a list)
 
     '''
+    # https://stackoverflow.com/questions/30483246/how-can-i-check-if-a-module-has-been-imported
+    # fprint("is it mediapipe or mp? (it's the actual modulename, nice)", "mediapipe" in sys.modules, "mp" in sys.modules)
+    import sys
+    modulename = 'mediapipe' #this implies mediapipe was already imported in the actual sourcecode tho
+    if modulename in sys.modules:
+        fprint('{} module detected, setting up landmarker'.format(modulename))
 
+        #init mediapipe here so it spawns the right amt of processes
+        import mediapipe as mp
+        from mediapipe.tasks import python
+        from mediapipe.tasks.python import vision
+        #assume this file structure:
+        # this file\examples\creativecommonsmedia\pose_landmarker_full.task is the location
+        # https://stackoverflow.com/a/50098973
+        # from pathlib import Path
+
+        # print("file location?", Path(__file__).absolute())
+        # print("cwd???3", os.getcwd())
+        #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
+        # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
+        from sys import platform
+        if platform == "win32":
+            #hope this works for both py file and running from pyinstaller, i'll have to check
+            # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+            tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+            #now to acommodate if this was made with pyinstaller as a module:
+            if hasattr(sys, "_MEIPASS") and "fastcvapp" in tasklocation:
+                tasklocation = os.path.join(sys._MEIPASS,'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+            
+        if platform == "darwin":
+            fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
+            #things are different depending if it's in pyinstaller or not
+            import sys
+            if hasattr(sys, "_MEIPASS"):
+                # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
+                os.chdir(os.path.dirname(sys.executable))
+                # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+            else: #assume it's run from py file, which in that case __file__ is sufficient:
+                os.chdir(os.path.dirname(__file__))
+                # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
+                tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
+
+        #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
+
+
+        # tasklocation = os.path.dirname(sys.executable)
+        # tasklocation = os.path.join(os.path.dirname(sys.executable),"examples", "creativecommonsmedia", "pose_landmarker_lite.task")
+        # tasklocation = os.path.join(os.getcwd(),"examples", "creativecommonsmedia", "pose_landmarker_full.task")
+
+
+        # if "examples" in os.getcwd().split(os.path.sep):
+        #     # https://stackoverflow.com/a/51276165
+        #     # tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_full.task")
+        #     tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_lite.task")
+        # else:
+        #     # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
+        #     tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
+
+        fprint("tasklocation?", tasklocation)
+
+        with open(tasklocation, 'rb') as f:
+            modelbytes = f.read()
+            base_options = python.BaseOptions(model_asset_buffer=modelbytes)
+            VisionRunningMode = mp.tasks.vision.RunningMode
+            options = vision.PoseLandmarkerOptions(
+                base_options=base_options,
+                running_mode=VisionRunningMode.VIDEO,
+                # model_complexity = 0,
+                #these were old settings, maybe it's too strict and not giving me poses
+                # min_pose_detection_confidence=0.6, min_tracking_confidence=0.6,
+                min_pose_detection_confidence=0.5, min_tracking_confidence=0.5,
+                )
+        landmarker = mp.tasks.vision.PoseLandmarker.create_from_options(options)
+        return landmarker
+    else:
+        landmarker = "mediapipe NOT loaded"
+        return landmarker
 
 def open_cvpipeline(*args):
     try:
@@ -258,81 +335,7 @@ def open_cvpipeline(*args):
 
         #some examples do not require mediapipe, only load them when mediapipe has already been loaded
 
-        # https://stackoverflow.com/questions/30483246/how-can-i-check-if-a-module-has-been-imported
-        # fprint("is it mediapipe or mp? (it's the actual modulename, nice)", "mediapipe" in sys.modules, "mp" in sys.modules)
-        modulename = 'mediapipe' #this implies mediapipe was already imported in the actual sourcecode tho
-        if modulename in sys.modules:
-            fprint('{} module detected, setting up landmarker'.format(modulename))
-
-            #init mediapipe here so it spawns the right amt of processes
-            import mediapipe as mp
-            from mediapipe.tasks import python
-            from mediapipe.tasks.python import vision
-            #assume this file structure:
-            # this file\examples\creativecommonsmedia\pose_landmarker_full.task is the location
-            # https://stackoverflow.com/a/50098973
-            # from pathlib import Path
-
-            # print("file location?", Path(__file__).absolute())
-            # print("cwd???3", os.getcwd())
-            #reminder: a subprocess spawned by multiprocessing will not have the same getcwd set by os.chdir, so you need to check if you're on mac or not:
-            # ALSO ON MAC: it fixes getcwd to be the location of the pyinstaller exe as per: https://stackoverflow.com/questions/50563950/about-maos-python-building-applications-os-getcwd-to-return-data-problems
-            from sys import platform
-            if platform == "win32":
-                #hope this works for both py file and running from pyinstaller, i'll have to check
-                # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
-                #now to acommodate if this was made with pyinstaller as a module:
-                if hasattr(sys, "_MEIPASS") and "fastcvapp" in tasklocation:
-                    tasklocation = os.path.join(sys._MEIPASS,'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
-                
-            if platform == "darwin":
-                fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
-                #things are different depending if it's in pyinstaller or not
-                import sys
-                if hasattr(sys, "_MEIPASS"):
-		            # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
-                    os.chdir(os.path.dirname(sys.executable))
-                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
-                else: #assume it's run from py file, which in that case __file__ is sufficient:
-                    os.chdir(os.path.dirname(__file__))
-                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                    tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_full.task')
-
-            #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
-
-
-            # tasklocation = os.path.dirname(sys.executable)
-            # tasklocation = os.path.join(os.path.dirname(sys.executable),"examples", "creativecommonsmedia", "pose_landmarker_lite.task")
-            # tasklocation = os.path.join(os.getcwd(),"examples", "creativecommonsmedia", "pose_landmarker_full.task")
-
-
-            # if "examples" in os.getcwd().split(os.path.sep):
-            #     # https://stackoverflow.com/a/51276165
-            #     # tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_full.task")
-            #     tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_lite.task")
-            # else:
-            #     # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
-            #     tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
-
-            fprint("tasklocation?", tasklocation)
-
-            with open(tasklocation, 'rb') as f:
-                modelbytes = f.read()
-                base_options = python.BaseOptions(model_asset_buffer=modelbytes)
-                VisionRunningMode = mp.tasks.vision.RunningMode
-                options = vision.PoseLandmarkerOptions(
-                    base_options=base_options,
-                    running_mode=VisionRunningMode.VIDEO,
-                    # model_complexity = 0,
-                    #these were old settings, maybe it's too strict and not giving me poses
-                    # min_pose_detection_confidence=0.6, min_tracking_confidence=0.6,
-                    min_pose_detection_confidence=0.5, min_tracking_confidence=0.5,
-                    )
-            landmarker = mp.tasks.vision.PoseLandmarker.create_from_options(options)
-        else:
-            landmarker = "mediapipe NOT loaded"
+        landmarkerVAR = open_mediapipe_helper()
 
         #set this for seeking ONCE per subprocess since I can't pop which would interfere with the other subprocesses
         FCVAWidget_shared_metadata_dictVAR2["seek_req_val" + str(os.getpid())] = 0
@@ -451,7 +454,7 @@ def open_cvpipeline(*args):
                         raw_deque, 
                         FCVAWidget_shared_metadata_dictVAR2, 
                         bufferlen, 
-                        landmarker, 
+                        landmarkerVAR, 
                         raw_dequeKEYS, 
                         force_monotonic_increasing, 
                         pose_deque
