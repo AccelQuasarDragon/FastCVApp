@@ -100,30 +100,32 @@ def int_to_partition(*args):
     maxpartitions = args[2]
     return int(((testint - (testint % bufferlen))/bufferlen)%maxpartitions)
 
+from mediapipe.framework.formats import landmark_pb2
+from mediapipe import solutions
 def draw_landmarks_on_image_fcva(annotated_image, detection_result):
-        try:
-            pose_landmarks_list = detection_result.pose_landmarks
-            
-            # Loop through the detected poses to visualize.
-            for idx in range(len(pose_landmarks_list)):
-                pose_landmarks = pose_landmarks_list[idx]
+    try:
+        pose_landmarks_list = detection_result.pose_landmarks
+        
+        # Loop through the detected poses to visualize.
+        for idx in range(len(pose_landmarks_list)):
+            pose_landmarks = pose_landmarks_list[idx]
 
-                # Draw the pose landmarks.
-                pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
-                pose_landmarks_proto.landmark.extend([
-                    landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in pose_landmarks
-                ])
-                solutions.drawing_utils.draw_landmarks(
-                    annotated_image,
-                    pose_landmarks_proto,
-                    solutions.pose.POSE_CONNECTIONS,
-                    solutions.drawing_styles.get_default_pose_landmarks_style())
-            # print("return typoe?", type(annotated_image), len(detection_result.pose_landmarks))
-            return annotated_image
-        except Exception as e:
-            print("open_appliedcv died!", e)
-            import traceback
-            print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
+            # Draw the pose landmarks.
+            pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+            pose_landmarks_proto.landmark.extend([
+                landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in pose_landmarks
+            ])
+            solutions.drawing_utils.draw_landmarks(
+                annotated_image,
+                pose_landmarks_proto,
+                solutions.pose.POSE_CONNECTIONS,
+                solutions.drawing_styles.get_default_pose_landmarks_style())
+        # print("return typoe?", type(annotated_image), len(detection_result.pose_landmarks))
+        return annotated_image
+    except Exception as e:
+        print("open_appliedcv died!", e)
+        import traceback
+        print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
 
 
 def compare_posedata(*args):
@@ -225,8 +227,9 @@ def open_camerapipeline(*args):
                     force_monotonic_increasingVAR_camera += 1
                     cam_pose_image = draw_landmarks_on_image_fcva(cam_image_og, results)
 
-
                     fprint(compare_posedata())
+                    fprint("campose image is ded?", type(cam_pose_image))
+
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
                     shared_cameraposeVAR["futureframe"] = frame
                     FCVAWidget_shared_metadata_dictVAR2["cam_pose_image"] = blosc2.compress(cam_pose_image.tobytes(),filter=blosc2.Filter.SHUFFLE, codec=blosc2.Codec.LZ4)
