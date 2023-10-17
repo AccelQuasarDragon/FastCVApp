@@ -199,6 +199,19 @@ def open_camerapipeline(*args):
         import traceback
         print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
 
+def open_mediapipe_helper(*args):
+    '''
+    this is a helper function to turn on mediapipe in a subprocess since both open_cvpipeline and open_camerapipeline need to do so
+    calling this func should be:
+    landmarker = open_mediapipe_helper()
+    and if there are any more args then do:
+    landmarker, var1, var2 = open_mediapipe_helper()
+
+    (make the landmarker code into another callable function open_mediapipe_helper, then in cvfunc and camerapipeline do: landmarker = open_mediapipe_helper() and if there's more vars do: landmarker, var1, var2 = open_mediapipe_helper() and open_mediapipe_helper returns them as a list)
+
+    '''
+
+
 def open_cvpipeline(*args):
     try:
         import sys
