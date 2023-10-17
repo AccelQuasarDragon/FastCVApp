@@ -106,7 +106,7 @@ def compare_posedata(*args):
 def open_camerapipeline(*args):
     try:
         FCVAWidget_shared_metadata_dictVAR2 = args[0]
-        shared_posedict_listVAR2 = args[1]
+        shared_source_posedict_listVAR2 = args[1]
         shared_cameraposeVAR = args[2]
         shared_cameraposeKEYSVAR = args[3]
         bufferlenVAR2 = args[4]
@@ -132,7 +132,7 @@ def open_camerapipeline(*args):
                 # need to sync somehow? or just have this indep?
                     # ANSWER: SYNC TO STARTTIME
                 # this func needs to access CORRECT pose data ...
-                # go here (shared_posedict_listVAR2) and use the same trick blit buffer does 
+                # go here (shared_source_posedict_listVAR2) and use the same trick blit buffer does 
                 # pose data from camera
                 # compare 2 pose data
                     #when you take pose data add a time to it, framedata from video already has time implicitly through the frame and starttime
@@ -165,19 +165,19 @@ def open_camerapipeline(*args):
                 shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
                 shared_analyzedIndex = frameblock(0,shareddict_instance,1,dicts_per_subprocessVAR)[0]
                 shared_posedict_index = frameblock(0,shareddict_instance,1,2)[0]
-                #difference between this and shared_analyzedIndex/shared_analyzedKeycountIndex is that the setup in shared_pool_meta_list is a block of [shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS] whereas shared_posedict_list is just [poseA, poseB, poseC] up until the max amount of cvpartitionsVAR2
+                #difference between this and shared_analyzedIndex/shared_analyzedKeycountIndex is that the setup in shared_pool_meta_list is a block of [shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS] whereas shared_source_posedict_list is just [poseA, poseB, poseC] up until the max amount of cvpartitionsVAR2
 
                 #==========================================
                 try:
                     #problem is that this always fails, wtf (since it's triggering too early for analyze subprocesses to work)
-                    # fprint("leys???", shared_posedict_listVAR2[shared_analyzedKeycountIndex].keys())
+                    # fprint("leys???", shared_source_posedict_listVAR2[shared_analyzedKeycountIndex].keys())
                     fprint("leys???", len(shared_pool_meta_listVAR2), shared_analyzedKeycountIndex,"ffn", future_frame_number, "instance", shareddict_instance, bufferlenVAR2, cvpartitionsVAR2 ,shared_analyzedKeycountIndex ,shared_analyzedIndex, "dicts_per_subprocessVAR", dicts_per_subprocessVAR, "block?", frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR))
                     correctkey = list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
                     frameref = "frame" + correctkey.replace("key",'')
                     frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
-                    frame_posedata = shared_posedict_listVAR2[shared_posedict_index][frameref]
+                    frame_posedata = shared_source_posedict_listVAR2[shared_posedict_index][frameref]
                     fprint("frameposedata?", frame_posedata)
-                    #look at shared_posedict_listVAR2
+                    #look at shared_source_posedict_listVAR2
                     #problem is it's formatted differently
                     shared_posedict_index
                     fprint(compare_posedata())
@@ -707,7 +707,7 @@ class FCVA:
         subprocess_listVAR                  = args[7]
         FCVAWidget_shared_metadata_dictVAR  = args[8]
         shared_timedict_listVAR             = args[9]
-        shared_posedict_listVAR             = args[10]
+        shared_source_posedict_listVAR             = args[10]
         camera_subprocess_listVAR           = args[11]
         shared_cameraposedict_listVAR       = args[12]
         # fprint("check args for FCVAWidget_SubprocessInit", args)
@@ -764,8 +764,8 @@ class FCVA:
             subprocess_listVAR.append(cv_subprocessA)
             shared_timedict_listVAR.append(shared_timedict)
             shared_timedict_listVAR.append(shared_timedictKEYS)
-            shared_posedict_listVAR.append(shared_posedict)
-            shared_posedict_listVAR.append(shared_posedictKEYS)
+            shared_source_posedict_listVAR.append(shared_posedict)
+            shared_source_posedict_listVAR.append(shared_posedictKEYS)
         #start the camera comparison subprocess
         #give self
         
@@ -776,7 +776,7 @@ class FCVA:
             target=open_camerapipeline,
             args=(
                 FCVAWidget_shared_metadata_dictVAR,
-                shared_posedict_listVAR, 
+                shared_source_posedict_listVAR, 
                 shared_camerapose, 
                 shared_cameraposeKEYS, 
                 bufferlenVAR, 
@@ -790,7 +790,7 @@ class FCVA:
         camera_subprocess_listVAR.append(camera_subprocessA)
         shared_cameraposedict_listVAR.append(shared_camerapose)
             
-        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocess, shared_timedict_listVAR, shared_posedict_listVAR, camera_subprocess_listVAR, shared_cameraposedict_listVAR]
+        return [shared_pool_meta_listVAR, subprocess_listVAR, dicts_per_subprocess, shared_timedict_listVAR, shared_source_posedict_listVAR, camera_subprocess_listVAR, shared_cameraposedict_listVAR]
 
     def FCVAWidgetInit(*args, ):#REMINDER: there is no self because I never instantiate a class with multiprocessing.process
         '''
@@ -844,7 +844,7 @@ class FCVA:
                 shared_pool_meta_list = [] #IMO this is faster, i think since it doesn't have to propagate changes down the nested dict structure
                 subprocess_list = []
                 shared_timedict_list = [] #dict + dict of keys
-                shared_posedict_list = [] #dict + dict of keys
+                shared_source_posedict_list = [] #dict + dict of keys
                 shared_camerapose_list = [] #dict + dict of keys
                 camera_subprocess_list = []
 
@@ -889,7 +889,7 @@ class FCVA:
                     subprocess_list,
                     self.FCVAWidget_shared_metadata_dict,
                     shared_timedict_list,
-                    shared_posedict_list, 
+                    shared_source_posedict_list, 
                     camera_subprocess_list, 
                     shared_camerapose_list,
                     )
@@ -900,7 +900,7 @@ class FCVA:
                 #what happened? This is not the original dicts_per_subprocess, the original actually comes from FCVAWidget_SubprocessInit. need to make it match later
                 self.dicts_per_subprocessVAR =  initdatalist[2]
                 self.shared_timedict_list =  initdatalist[3]
-                self.shared_posedict_list =  initdatalist[4]
+                self.shared_source_posedict_list =  initdatalist[4]
                 self.camera_subprocess_list = initdatalist[5]
                 self.shared_camerapose_list = initdatalist[6]
                 # https://kivy.org/doc/stable/api-kivy.event.html#kivy.event.EventDispatcher.bind
@@ -1175,10 +1175,10 @@ class FCVA:
                             #reminder that .items() turns things to tuples
                             # fprint("timerinfo + KEYS",[[abc[0] for abc in xyz['totalinfo'].items()] for xyz in self.shared_timedict_list if 'totalinfo' in xyz.keys()])
                             fprint("timerinfo + KEYS",[[abc for abc in xyz['totalinfo'].items() if ('appliedcv_time_total_spare_future' in str(abc[0]) or 'update_shared_dict_time_spare_future_time' in str(abc[0]))] for xyz in self.shared_timedict_list if 'totalinfo' in xyz.keys()])
-                            # fprint("shared_posedictVAR2", [len(x) for x in self.shared_posedict_list])
-                            fprint("shared_posedictVAR2", [x.keys() for x in self.shared_posedict_list])
-                            # fprint("shared_posedictVAR2", [x.keys() for x in self.shared_posedict_list])
-                            # fprint("shared_posedictVAR2", type(self.shared_posedict_list[shared_analyzedIndex][frameref])) #trying to match frame self.shared_analyzed
+                            # fprint("shared_posedictVAR2", [len(x) for x in self.shared_source_posedict_list])
+                            fprint("shared_posedictVAR2", [x.keys() for x in self.shared_source_posedict_list])
+                            # fprint("shared_posedictVAR2", [x.keys() for x in self.shared_source_posedict_list])
+                            # fprint("shared_posedictVAR2", type(self.shared_source_posedict_list[shared_analyzedIndex][frameref])) #trying to match frame self.shared_analyzed
                         
                         # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
                         if frame != None:
