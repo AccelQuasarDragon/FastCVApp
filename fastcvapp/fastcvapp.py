@@ -164,7 +164,7 @@ def open_camerapipeline(*args):
                 # 1,2,1,4
                 shared_analyzedKeycountIndex = frameblock(1,shareddict_instance,1,dicts_per_subprocessVAR)[0] #reminder that frameblock is a continuous BLOCK and shared_pool_meta_listVAR is alternating: 0 1 2 3, 0 1 2 3, etc... which is why bufferlen is 1
                 shared_analyzedIndex = frameblock(0,shareddict_instance,1,dicts_per_subprocessVAR)[0]
-                shared_posedict_index = frameblock(0,shareddict_instance,1,1)[0]
+                shared_posedict_index = frameblock(0,shareddict_instance,1,2)[0]
                 #difference between this and shared_analyzedIndex/shared_analyzedKeycountIndex is that the setup in shared_pool_meta_list is a block of [shared_analyzedA, shared_analyzedAKeycount, shared_rawA, shared_rawAKEYS] whereas shared_posedict_list is just [poseA, poseB, poseC] up until the max amount of cvpartitionsVAR2
 
                 #==========================================
@@ -175,7 +175,7 @@ def open_camerapipeline(*args):
                     correctkey = list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
                     frameref = "frame" + correctkey.replace("key",'')
                     frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
-                    frame_posedata = shared_posedict_listVAR2[shared_posedict_index][correctkey]
+                    frame_posedata = shared_posedict_listVAR2[shared_posedict_index][frameref]
                     fprint("frameposedata?", frame_posedata)
                     #look at shared_posedict_listVAR2
                     #problem is it's formatted differently
@@ -184,8 +184,11 @@ def open_camerapipeline(*args):
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
                     shared_cameraposeVAR["futureframe"] = frame
                     fprint("chose new frame!", current_frame_number,future_frame_number)
-                except:
-                    fprint("key does not exist:", future_frame_number, "???", shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values() )
+                except Exception as e:
+                    fprint("key does not exist (open_camerapipeline):", future_frame_number, "???", shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values() )
+                    print("open_camerapipeline died (inner)!", e)
+                    import traceback
+                    print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
                     pass
             else:
                 # fprint("checking for blit works (it's off)")
