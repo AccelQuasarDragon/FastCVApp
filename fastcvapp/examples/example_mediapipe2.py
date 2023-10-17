@@ -120,7 +120,7 @@ try:
             # FCVAWidget_shared_metadata_dictVAR3 = args[1]
             bufferlenVAR = args[2]
             answerdeque = deque(maxlen=bufferlenVAR)
-            landmarkerVAR = args[3]
+            landmarkerVAR2 = args[3]
             raw_dequeKEYSVAR = args[4]
             force_monotonic_increasingVAR = args[5]
             pose_dequeVAR = args[6]
@@ -151,16 +151,16 @@ try:
                 # newint = int(timestr[0][-4:]+timestr[1][:3]) #take last 4 of the whole number and first 3 of the decimal, idk if this matters tho
                 #time.time should work, i'm feeding them in sequence anyways
                 #just making sure they have only the first 3 digits from the decimal and it's an int
-                # results = landmarkerVAR.detect_for_video(image, newint) 
+                # results = landmarkerVAR2.detect_for_video(image, newint) 
                 #you need this because after SEEK the rawdeque is cleared
-                # results = landmarkerVAR.detect_for_video(image, raw_dequeKEYSVAR[peek_to_force_monotonically_increasing]) 
+                # results = landmarkerVAR2.detect_for_video(image, raw_dequeKEYSVAR[peek_to_force_monotonically_increasing]) 
                 # peek_to_force_monotonically_increasing += 1
                 # print("increase wf??", os.getpid(), force_monotonic_increasingVAR, flush = True)
-                results = landmarkerVAR.detect_for_video(image, force_monotonic_increasingVAR) 
+                results = landmarkerVAR2.detect_for_video(image, force_monotonic_increasingVAR) 
                 pose_dequeVAR.append(results)
                 # print("resultsab", results)
                 force_monotonic_increasingVAR += 1
-                # results = landmarkerVAR.detect(image) 
+                # results = landmarkerVAR2.detect(image) 
                 
                 #now draw on original image: (don't draw anymore since I draw different data later on such as in open_camerapipeline)
                 # fixed_image = draw_landmarks_on_image(ogimage, results)

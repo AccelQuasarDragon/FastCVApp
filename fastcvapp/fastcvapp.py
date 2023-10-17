@@ -100,6 +100,32 @@ def int_to_partition(*args):
     maxpartitions = args[2]
     return int(((testint - (testint % bufferlen))/bufferlen)%maxpartitions)
 
+def draw_landmarks_on_image_fcva(annotated_image, detection_result):
+        try:
+            pose_landmarks_list = detection_result.pose_landmarks
+            
+            # Loop through the detected poses to visualize.
+            for idx in range(len(pose_landmarks_list)):
+                pose_landmarks = pose_landmarks_list[idx]
+
+                # Draw the pose landmarks.
+                pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+                pose_landmarks_proto.landmark.extend([
+                    landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in pose_landmarks
+                ])
+                solutions.drawing_utils.draw_landmarks(
+                    annotated_image,
+                    pose_landmarks_proto,
+                    solutions.pose.POSE_CONNECTIONS,
+                    solutions.drawing_styles.get_default_pose_landmarks_style())
+            # print("return typoe?", type(annotated_image), len(detection_result.pose_landmarks))
+            return annotated_image
+        except Exception as e:
+            print("open_appliedcv died!", e)
+            import traceback
+            print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
+
+
 def compare_posedata(*args):
     return "compared 2 pose data!"
 
@@ -116,13 +142,18 @@ def open_camerapipeline(*args):
         shared_pool_meta_listVAR2 = args[8]
 
         spf = (1/fpsVAR2)
+        import mediapipe as mp
 
         #open the correct camera (refer to open_cvpipeline)
         camstream = cv2.VideoCapture(0)
+        #set width and height info for kivy
+        FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_width"] = int(camstream.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
+        FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_height"] = int(camstream.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
         FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = 0
         future_test_frame = None
         #turn on yet another instance of mediapipe...
         landmarkerVAR = open_mediapipe_helper()
+        force_monotonic_increasingVAR_camera = 0
         while True:
             #tbh, DO THINGS SEQUENTIALLY DUMBASS
             #1: run subprocess
@@ -181,10 +212,27 @@ def open_camerapipeline(*args):
                     fprint("frameposedata?", frame_posedata)
                     #look at shared_source_posedict_listVAR2
                     #problem is it's formatted differently
-                    shared_posedict_index
+
+                    ret, cam_image = camstream.read()
+                    
+                    cam_image_og = cam_image.copy()
+
+                    cam_image = cv2.resize(cam_image, (256, 144))
+                    cam_image = cv2.cvtColor(cam_image, cv2.COLOR_RGB2BGR)
+                    # Recolor Feed
+                    cam_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cam_image)
+                    results = landmarkerVAR.detect_for_video(cam_image, force_monotonic_increasingVAR_camera) 
+                    force_monotonic_increasingVAR_camera += 1
+                    cam_pose_image = draw_landmarks_on_image_fcva(cam_image_og, results)
+
+
                     fprint(compare_posedata())
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
                     shared_cameraposeVAR["futureframe"] = frame
+                    FCVAWidget_shared_metadata_dictVAR2["cam_pose_image"] = blosc2.compress(cam_pose_image.tobytes(),filter=blosc2.Filter.SHUFFLE, codec=blosc2.Codec.LZ4)
+
+
+
                     fprint("chose new frame!", current_frame_number,future_frame_number)
                 except Exception as e:
                     fprint("key does not exist (open_camerapipeline):", future_frame_number, "???", shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values() )
@@ -1314,6 +1362,26 @@ class FCVA:
                                 self.ids[
                                         "future_textureID"
                                     ].texture = self.texture2
+                            
+                            fprint("#now to update cam image:")
+                            if "cam_pose_image" in self.FCVAWidget_shared_metadata_dict.keys():
+                                cam_pose_image_data = blosc2.decompress(self.FCVAWidget_shared_metadata_dict["cam_pose_image"])
+
+                                camheight = self.FCVAWidget_shared_metadata_dict["cam_pose_image_height"]
+                                camwidth = self.FCVAWidget_shared_metadata_dict["cam_pose_image_width"]
+
+                                self.texture3 = Texture.create(
+                                size=(camheight, camwidth), colorfmt=self.colorfmtval)
+                                frame3 = np.frombuffer(buf2, np.uint8).copy().reshape(camheight, camwidth, 3)
+                                frame3 = cv2.flip(frame3, 0)
+                                buf3 = frame3.tobytes()
+                                self.texture3.blit_buffer(buf3, colorfmt="bgr", bufferfmt="ubyte")
+                                self.ids[
+                                        "camera_textureID"
+                                    ].texture = self.texture3
+
+
+
                             fprint("blitting or not?")
                         else:
                             if self.index != 0:
