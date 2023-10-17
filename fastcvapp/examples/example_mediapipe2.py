@@ -162,9 +162,9 @@ try:
                 force_monotonic_increasingVAR += 1
                 # results = landmarkerVAR.detect(image) 
                 
-                #now draw on original image: 
-                fixed_image = draw_landmarks_on_image(ogimage, results)
-                answerdeque.append(fixed_image)
+                #now draw on original image: (don't draw anymore since I draw different data later on such as in open_camerapipeline)
+                # fixed_image = draw_landmarks_on_image(ogimage, results)
+                answerdeque.append(ogimage)
                 raw_dequeKEYScount += 1
             # print("aqlenEND", len(answerdeque),flush = True)
             return answerdeque

@@ -173,6 +173,8 @@ def open_camerapipeline(*args):
                     correctkey = list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
                     frameref = "frame" + correctkey.replace("key",'')
                     frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
+                    frame_posedata = shared_pool_meta_listVAR2[shared_analyzedKeycountIndex][correctkey]
+                    fprint("frameposedata?", frame_posedata)
                     
                     fprint(compare_posedata())
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
