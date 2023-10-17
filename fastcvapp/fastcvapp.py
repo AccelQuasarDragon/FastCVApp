@@ -121,6 +121,8 @@ def open_camerapipeline(*args):
         camstream = cv2.VideoCapture(0)
         FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = 0
         future_test_frame = None
+        #turn on yet another instance of mediapipe...
+        landmarkerVAR = open_mediapipe_helper()
         while True:
             #tbh, DO THINGS SEQUENTIALLY DUMBASS
             #1: run subprocess
