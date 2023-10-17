@@ -1380,7 +1380,7 @@ class FCVA:
 
 
                                 self.texture3 = Texture.create(
-                                size=(camheight, camwidth), colorfmt=self.colorfmtval)
+                                size=(camwidth,camheight), colorfmt=self.colorfmtval)
                                 self.texture3.blit_buffer(buf3, colorfmt="bgr", bufferfmt="ubyte")
                                 self.ids[
                                         "camera_textureID"
