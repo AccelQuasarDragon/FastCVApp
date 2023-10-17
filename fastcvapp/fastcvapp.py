@@ -175,11 +175,11 @@ def open_camerapipeline(*args):
                     correctkey = list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].keys())[list(shared_pool_meta_listVAR2[shared_analyzedKeycountIndex].values()).index(future_frame_number)]
                     frameref = "frame" + correctkey.replace("key",'')
                     frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
-                    frame_posedata = shared_pool_meta_listVAR2[shared_analyzedKeycountIndex][correctkey]
+                    frame_posedata = shared_posedict_listVAR2[shared_posedict_index][correctkey]
                     fprint("frameposedata?", frame_posedata)
                     #look at shared_posedict_listVAR2
                     #problem is it's formatted differently
-                    
+                    shared_posedict_index
                     fprint(compare_posedata())
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
                     shared_cameraposeVAR["futureframe"] = frame
