@@ -147,8 +147,8 @@ def open_camerapipeline(*args):
         #open the correct camera (refer to open_cvpipeline)
         camstream = cv2.VideoCapture(0)
         #set width and height info for kivy
-        FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_width"] = int(camstream.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
-        FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_height"] = int(camstream.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
+        FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_width"] = int(camstream.get(cv2.CAP_PROP_FRAME_WIDTH))
+        FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_height"] = int(camstream.get(cv2.CAP_PROP_FRAME_HEIGHT))
         FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = 0
         future_test_frame = None
         #turn on yet another instance of mediapipe...
