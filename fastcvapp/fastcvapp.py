@@ -211,7 +211,7 @@ def open_camerapipeline(*args):
                     frameref = "frame" + correctkey.replace("key",'')
                     frame = shared_pool_meta_listVAR2[shared_analyzedIndex][frameref]
                     frame_posedata = shared_source_posedict_listVAR2[shared_posedict_index][frameref]
-                    fprint("frameposedata?", frame_posedata)
+                    # fprint("frameposedata?", frame_posedata)
                     #look at shared_source_posedict_listVAR2
                     #problem is it's formatted differently
 
@@ -228,7 +228,7 @@ def open_camerapipeline(*args):
                     cam_pose_image = draw_landmarks_on_image_fcva(cam_image_og, results)
 
                     fprint(compare_posedata())
-                    fprint("campose image is ded?", type(cam_pose_image))
+                    fprint("campose image is ded?", type(cam_pose_image), type(cam_image), FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_width"], FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_height"])
 
                     FCVAWidget_shared_metadata_dictVAR2["camerainterval"] = FCVAWidget_shared_metadata_dictVAR2["camerainterval"] + 1
                     shared_cameraposeVAR["futureframe"] = frame
@@ -1373,11 +1373,14 @@ class FCVA:
                                 camheight = self.FCVAWidget_shared_metadata_dict["cam_pose_image_height"]
                                 camwidth = self.FCVAWidget_shared_metadata_dict["cam_pose_image_width"]
 
-                                self.texture3 = Texture.create(
-                                size=(camheight, camwidth), colorfmt=self.colorfmtval)
-                                frame3 = np.frombuffer(buf2, np.uint8).copy().reshape(camheight, camwidth, 3)
+                                buf3 = cam_pose_image_data
+                                frame3 = np.frombuffer(buf3, np.uint8).copy().reshape(camheight,camwidth, 3)
                                 frame3 = cv2.flip(frame3, 0)
                                 buf3 = frame3.tobytes()
+
+
+                                self.texture3 = Texture.create(
+                                size=(camheight, camwidth), colorfmt=self.colorfmtval)
                                 self.texture3.blit_buffer(buf3, colorfmt="bgr", bufferfmt="ubyte")
                                 self.ids[
                                         "camera_textureID"
