@@ -223,9 +223,9 @@ def open_camerapipeline(*args):
                     cam_image = cv2.cvtColor(cam_image, cv2.COLOR_RGB2BGR)
                     # Recolor Feed
                     cam_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cam_image)
-                    results = landmarkerVAR.detect_for_video(cam_image, force_monotonic_increasingVAR_camera) 
+                    cam_pose_results = landmarkerVAR.detect_for_video(cam_image, force_monotonic_increasingVAR_camera) 
                     force_monotonic_increasingVAR_camera += 1
-                    cam_pose_image = draw_landmarks_on_image_fcva(cam_image_og, results)
+                    cam_pose_image = draw_landmarks_on_image_fcva(cam_image_og, cam_pose_results)
 
                     fprint(compare_posedata())
                     fprint("campose image is ded?", type(cam_pose_image), type(cam_image), FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_width"], FCVAWidget_shared_metadata_dictVAR2["cam_pose_image_height"])
