@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastcvapp"
-version = "0.2.1"
+version = "0.2.2" #0.2.2 is update for ADS
 description = "Create a computer vision app FAST! Multiprocessing made easy, right out of the box."
 authors = ["AccelQuasarDragon"]
 license = "MIT License"

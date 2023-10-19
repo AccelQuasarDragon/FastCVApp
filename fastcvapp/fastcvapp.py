@@ -502,7 +502,7 @@ class FCVA:
                         solution = []
                         for pathstr in suspectedpathlist:
                             pathoption = list(pathlib.Path(pathstr).rglob(self.source))
-                            testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
+                            testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()] #.app is for mac bundles since it will be a dupe location
                             if pathoption != [] and testfilter != []:
                                 # solution.append(*testfilter)
                                 solution += testfilter
