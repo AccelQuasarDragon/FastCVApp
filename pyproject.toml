@@ -15,7 +15,7 @@ python = "^3.9.0,<3.12" #python = "^3.8,<3.12" ("^3.9.0,<3.12" is required b/c p
 Kivy = "^2.2.0"
 opencv-python = "^4.6.0.66"
 numpy = "^1.23.4"
-mediapipe = {version = "^0.10.0"}
+mediapipe = {version = "0.10.3"} #10.3 works, 10.7 pose keeps repeating for some reason
 blosc2 = "^2.2.2"
 
 [tool.poetry.group.dev.dependencies]
