@@ -299,7 +299,7 @@ try:
                 # results = landmarkerVAR2.detect(image) 
                 
                 #now draw on original image: (don't draw anymore since I draw different data later on such as in open_camerapipeline)
-                # fixed_image = draw_landmarks_on_image(ogimage, results)
+                fixed_image = draw_landmarks_on_image(ogimage, results)
                 answerdeque.append(ogimage)
                 raw_dequeKEYScount += 1
             # print("aqlenEND", len(answerdeque),flush = True)
