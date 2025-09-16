@@ -945,6 +945,7 @@ class FCVA:
                     self.updateSliderData(self.FCVAWidget_shared_metadata_dict)
                     #have a popup saying it's loaded or not:
                     self.textpopupinstance(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"])
+                    print("what is source now?", self.source)
                 else:
                     #popup warning
                     box = BoxLayout(orientation='vertical')
