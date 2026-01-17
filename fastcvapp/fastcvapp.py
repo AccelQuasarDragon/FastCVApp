@@ -1212,6 +1212,7 @@ class FCVA:
                             self.texture2 = Texture.create(
                                 size=(frame.shape[1], frame.shape[0]), colorfmt=self.colorfmtval)
                             fprint("cameraposelist", self.shared_camerapose_list[0].keys(), "does future_textureID exist?", self.ids["devLayoutID"], self.ids["future_textureID"], (frame.shape[1], frame.shape[0]) )
+                            # fprint("cameraposelist", self.shared_camerapose_list, "does future_textureID exist?", self.ids["devLayoutID"], self.ids["future_textureID"], (frame.shape[1], frame.shape[0]) )
                             #DNE: self.ids["devLayoutID"].ids["future_textureID"] but the raw "future_textureID" does
                             
                             if 'futureframe' in self.shared_camerapose_list[0].keys():
