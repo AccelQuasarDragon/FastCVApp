@@ -788,13 +788,13 @@ class FCVA:
                    __file__, 
                    __name__ == "fastcvapp",  
                    __name__ == "fastcvapp.fastcvapp", 
-                   __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp",
+                   __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" or __name__ == "fastcvapp_main",
                    "PID", os.getpid(), )
             
                 #    "multiprocessing-fork" ,str(sys.argv), 
                 #    not "multiprocessing-fork" in str(sys.argv)
             # if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" and not "multiprocessing-fork" in str(sys.argv):
-            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" :
+            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp"  or __name__ == "fastcvapp_main":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
@@ -1086,7 +1086,7 @@ class FCVA:
                             FCVA_mp.Manager()
                         except Exception as e: 
                             # if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" and not "multiprocessing-fork" in str(sys.argv):
-                            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
+                            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" or __name__ == "fastcvapp_main":
                                 import multiprocessing as FCVA_mp
                                 FCVA_mp.freeze_support()
                                 fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")
@@ -1342,6 +1342,7 @@ class FCVA:
                     cv_check2 = len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions
                     camload = "subprocess_cam_load" in self.FCVAWidget_shared_metadata_dict.keys()
                     # self.ids['GETINFO'].text = self.ids['GETINFO'].text + str(pickone) + " " + str(cv_check) + " " + str(cv_check2) + " " + str(camload)
+                    print("not not checked???", cv_check, cv_check2, camload, self.FCVAWidget_shared_metadata_dict["subprocess_cam_load"])
                     if (
                         #cv subprocesses are on
                         cv_check and 

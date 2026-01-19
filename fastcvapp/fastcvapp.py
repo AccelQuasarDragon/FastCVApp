@@ -481,8 +481,8 @@ class FCVA:
 
     def run(self):
         try:
-            fprint("when compiled, what is __name__?", __name__, "file?", __file__)
-            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
+            fprint("when compiled, what is __name__?", __name__, "file?", __file__, "fastcvapp_main yes or no??",__name__ == "fastcvapp_main")
+            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" or __name__ == "fastcvapp_main":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()

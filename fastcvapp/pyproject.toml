@@ -46,8 +46,3 @@ build-backend = "poetry.core.masonry.api"
 #mediapipe-silicon = {version = "^0.9.1",  markers = "sys_platform == 'darwin'"}
 #mediapipe silicon is for m1 chip, if ur install is failing try regular mediapipe
 
-[tool.setuptools]
-packages = ["fastcvapp", "fastcvapp.fastcvapp"]
-
-[tool.setuptools.package-dir]
-fastcvapp = "fastcvapp"
