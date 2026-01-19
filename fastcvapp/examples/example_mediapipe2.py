@@ -3,8 +3,10 @@ try:
     import os
     import cv2
     import mediapipe as mp
-    from mediapipe import solutions
-    from mediapipe.framework.formats import landmark_pb2
+    # from mediapipe import solutions
+    # from mediapipe.framework.formats import landmark_pb2
+    from mediapipe.tasks import python
+    from mediapipe.tasks.python import vision
     import time
     from collections import deque
 
@@ -299,7 +301,7 @@ try:
                 # results = landmarkerVAR2.detect(image) 
                 
                 #now draw on original image: (don't draw anymore since I draw different data later on such as in open_camerapipeline)
-                fixed_image = draw_landmarks_on_image(ogimage, results)
+                # fixed_image = draw_landmarks_on_image(ogimage, results)
                 answerdeque.append(ogimage)
                 raw_dequeKEYScount += 1
             # print("aqlenEND", len(answerdeque),flush = True)
