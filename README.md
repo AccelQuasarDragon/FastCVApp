@@ -48,4 +48,4 @@ Creating a simple example
 community; 
 kivy discord
 documentation: readthedocs
-~ jan 2026 update: TL:DR; only examplemediapipe2 works in branch GAIM/#2. This is because I updated it to the lastest mediapipe 0.10.31. things literally work the same but imports got changed. Also, you have to draw your own things now (just use opencv), I couldn't find where mediapipe drawing utils was. 
+~ jan 19 2026 update: TL:DR; only examplemediapipe2 works in branch GAIM/#2. This is because I updated it to the lastest mediapipe 0.10.31. things literally work the same but imports got changed. Also, you have to draw your own things now (just use opencv), I couldn't find where mediapipe drawing utils was. 
