@@ -789,13 +789,13 @@ class FCVA:
                    __file__, 
                    __name__ == "fastcvapp",  
                    __name__ == "fastcvapp.fastcvapp", 
-                   __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp",
+                   __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" or __name__ == "fastcvapp.fastcvapp.fastcvapp",
                    "PID", os.getpid(), )
             
                 #    "multiprocessing-fork" ,str(sys.argv), 
                 #    not "multiprocessing-fork" in str(sys.argv)
             # if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" and not "multiprocessing-fork" in str(sys.argv):
-            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
+            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" or __name__ == "fastcvapp.fastcvapp.fastcvapp":
                 import multiprocessing as FCVA_mp
                 # this is so that only 1 window is run when packaging with pyinstaller
                 FCVA_mp.freeze_support()
@@ -1087,7 +1087,7 @@ class FCVA:
                             FCVA_mp.Manager()
                         except Exception as e: 
                             # if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" and not "multiprocessing-fork" in str(sys.argv):
-                            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp":
+                            if __name__ == "fastcvapp" or __name__ == "fastcvapp.fastcvapp" or __name__ == "fastcvapp.fastcvapp.fastcvapp":
                                 import multiprocessing as FCVA_mp
                                 FCVA_mp.freeze_support()
                                 fprint("FCVA FCVAWidget __init__ detected no multiprocessing, importing as FCVA_mp and started freeze_support")
