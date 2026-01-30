@@ -4,7 +4,7 @@ import sys
 import shutil
 
 def fprint(*args):
-	print(os.getpid(), time.time(), *args, flush = True)
+	print(os.getpid(),  time.time(), *args, flush = True)
 
 def FCVA_update_resources(*args, sourcelocationVAR = False, destlocationVAR = False):
 	'''

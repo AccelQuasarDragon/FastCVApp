@@ -4,7 +4,7 @@ import time
 import os
 import sys
 import numpy as np
-import math
+# import math
 import webbrowser
 from sys import platform
 
@@ -523,6 +523,7 @@ def open_cvpipeline(*args):
             #make sure things have started AND this processess is not stopped:
 
             #if source is different, close cap and reopen with new source: also remember this adds time to this already time critical function...
+            
             if ("source" in FCVAWidget_shared_metadata_dictVAR2.keys() and 
                 currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]
                 ):
@@ -771,6 +772,7 @@ def open_cvpipeline(*args):
         print("open_appliedcv died!", e)
         import traceback
         import os
+        fprint("source is crashing??", FCVAWidget_shared_metadata_dictVAR2.keys())
         fullerr = "".join(traceback.format_exception(*sys.exc_info()))
         print("full exception", fullerr)
         FCVAWidget_shared_metadata_dictVAR2["cv_pipebreak" + str(os.getpid())] != fullerr
@@ -1223,7 +1225,7 @@ class FCVA:
                             patr_location = os.path.join(os.getcwd(), 'bin', 'resources', 'patreon-v2.png')
                     self.ids["patr_buttonID"].source = patr_location
                     self.ids["disc_buttonID"].source = disc_location
-                    fprint("progenitor","progenitor" in self.kvinit_dictVAR2.keys(),self.kvinit_dictVAR2["progenitor"], "disc", disc_location, "patr", patr_location, self)
+                    fprint("progenitor","progenitor" in self.kvinit_dictVAR2.keys(), "disc", disc_location, "patr", patr_location, self) # self.kvinit_dictVAR2["progenitor"],
 
                 def updatevolumeSlider(self, *args):
                     self.ids['volsliderID'].value = 100
@@ -1344,7 +1346,7 @@ class FCVA:
                     camload = "subprocess_cam_load" in self.FCVAWidget_shared_metadata_dict.keys()
                     # self.ids['GETINFO'].text = self.ids['GETINFO'].text + str(pickone) + " " + str(cv_check) + " " + str(cv_check2) + " " + str(camload)
                     
-                    print("not not checked???", cv_check, cv_check2, camload, self.FCVAWidget_shared_metadata_dict["subprocess_cam_load"])
+                    print("not not checked???", cv_check, cv_check2, camload, self.FCVAWidget_shared_metadata_dict.keys())
                     if (
                         #cv subprocesses are on
                         cv_check and 
@@ -1772,6 +1774,7 @@ class FCVA:
                                     
                                     fprint("alternator times",test_time, self.FCVAWidget_shared_metadata_dict["show_future_pose_time"], self.FCVAWidget_shared_metadata_dict["show_analysis_time"],self.FCVAWidget_shared_metadata_dict["show_analysis_time"] == None, test_time < self.FCVAWidget_shared_metadata_dict["show_future_pose_time"])
                                     
+                                    frame_copy = frame.copy()
                                     if test_time <= self.FCVAWidget_shared_metadata_dict["show_future_pose_time"]: #reminder that u already validated that info exists in earlier checks
                                         # # do normal (draw the future pose)
                                         # frame = self.helper_func_dictVAR2["draw_available_landmarks"](
@@ -1780,14 +1783,23 @@ class FCVA:
                                         #     self.FCVAWidget_shared_metadata_dict["future_display_posedata"], 
                                         #     self.FCVAWidget_shared_metadata_dict["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
                                         # do normal (draw the future pose)
-                                        frame = self.helper_func_dictVAR2["draw_available_landmarks"](
-                                            frame.copy(),
-                                            cam_pose_image_data.copy(), 
+                                        
+                                        self.helper_func_dictVAR2["draw_available_landmarks"](
+                                            frame_copy,
+                                            cam_pose_image_data, #not being used anymore...
                                             self.shared_camera_subprocess_dictVAR["future_display_posedata"],
                                             self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
+
                                     else: # draw score
-                                        frame = self.helper_func_dictVAR2["draw_available_landmarks"](
-                                            frame.copy(),
+                                        # frame = self.helper_func_dictVAR2["draw_available_landmarks"](
+                                        #     frame.copy(),
+                                        #     cam_pose_image_data.copy(), 
+                                        #     self.shared_camera_subprocess_dictVAR["answer_posedictVAR"], 
+                                        #     self.shared_camera_subprocess_dictVAR["test_posedictVAR"], 
+                                        #     self.shared_camera_subprocess_dictVAR["scoredictVAR"])
+                                        # # pass
+                                        self.helper_func_dictVAR2["draw_available_landmarks"](
+                                            frame_copy,
                                             cam_pose_image_data.copy(), 
                                             self.shared_camera_subprocess_dictVAR["answer_posedictVAR"], 
                                             self.shared_camera_subprocess_dictVAR["test_posedictVAR"], 
@@ -1798,7 +1810,7 @@ class FCVA:
                                     fprint("blit frame??", type(frame))
                                 
                                 
-                                frame = cv2.flip(frame, 0)
+                                frame = cv2.flip(frame_copy, 0)
                                 buf = frame.tobytes()
                                 if isinstance(frame,np.ndarray): #trying bytes
                                     #complicated way of safely checking if a value may or may not exist, then get that value:
