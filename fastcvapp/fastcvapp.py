@@ -496,6 +496,40 @@ def open_cvpipeline(*args):
         # testvar = 0 #remember to delete this
         while True:
             '''
+            Docstring for open_cvpipeline
+            
+            :param args: Description
+            while True:
+                #============== if source is different, chance to updated source ============================
+                
+                #============== if starttime, NOT pausetime in this pid, and capfps key exists ============================
+
+                    #============== if analyzed_deque is maxed out, the max deque key is < current framenumber or max deque key is -1 
+                    #  refill shared_posedictVAR['frame'+str(x)] from pose_deque 
+                    #  ============================
+
+                    #============== if faw_deque >= bufferlen and analyzed deque is empty 
+                    # update resultdeque with appliedcv func 
+                    # ============================
+
+                        #============== if len(resultdeque)> 0: #resultdeque can be none if seek occurs
+                        # update analyzed_deque/analyzed_dequeKEYS with appliedcv func 
+                        # ============================
+
+                    #============== if you start seeking
+                    # clear all deques
+                    # ============================
+
+                    #============== if raw deque is less than bufferlen/2 and you're supposed to read:
+                    # fill raw_deque/raw_dequeKEYS
+                    # ============================
+
+                        #============== len(raw_deque) != bufferlen
+                        # cry about it
+                        # ============================
+                
+            '''
+            '''
             PLAN:
             Init shared dicts at the beginning instead of checking every while loop
             
@@ -524,6 +558,7 @@ def open_cvpipeline(*args):
 
             #if source is different, close cap and reopen with new source: also remember this adds time to this already time critical function...
             
+            #============== if source is different, chance to updated source ============================
             if ("source" in FCVAWidget_shared_metadata_dictVAR2.keys() and 
                 currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]
                 ):
@@ -545,6 +580,7 @@ def open_cvpipeline(*args):
             #from my quick testing takes ~6ms to get to frame, but doesn't matter since everything should wait until all subprocesses seek to that frame
 
             #now you also have to check for fps ON EVERY RUN.... yikes
+            #============== if starttime, NOT pausetime in this pid, and capfps key exists ============================
             if (
                 "starttime" in FCVAWidget_shared_metadata_dictVAR2 and 
                 ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2) and 
@@ -579,6 +615,10 @@ def open_cvpipeline(*args):
                 # fprint("why no updating?", len(analyzed_deque), bufferlen, len(analyzed_deque) == bufferlen, max(shared_analyzedKeycountVAR.values()) <= current_framenumber, max(shared_analyzedKeycountVAR.values()) == -1, x(shared_analyzedKeycountVAR.values()) <= current_framenumber or max(shared_analyzedKeycountVAR.values()) == -1))
                 
                 #send to shareddict for kivy to display
+                
+                #============== if analyzed_deque is maxed out, the max deque key is < current framenumber or max deque key is -1 
+                #  refill shared_posedictVAR['frame'+str(x)] from pose_deque 
+                #  ============================
                 if (len(analyzed_deque) == bufferlen and 
                     (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or 
                      max(shared_analyzedKeycountVAR.values()) == -1
@@ -612,6 +652,9 @@ def open_cvpipeline(*args):
                 # fprint("why is analyze not running", len(raw_deque), len(raw_deque) > 0, len(analyzed_deque) == 0)
                 
                 #send to cv func to analyze frames
+                #============== if faw_deque >= bufferlen and analyzed deque is empty 
+                # update resultdeque with appliedcv func 
+                # ============================
                 if (len(raw_deque) >= bufferlen and 
                     len(analyzed_deque) == 0
                     ):
@@ -637,6 +680,9 @@ def open_cvpipeline(*args):
                     current_framenumber = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/(1/fps))
                     otherhalf = time.time()
 
+                    #============== if len(resultdeque)> 0: #resultdeque can be none if seek occurs
+                    # update analyzed_deque/analyzed_dequeKEYS with appliedcv func 
+                    # ============================
                     if len(resultdeque)> 0: #resultdeque can be none if seek occurs
                         #get first frame# for appliedcv_time_total_spare_future calc:
                         lastframecount = raw_dequeKEYS[0]
@@ -664,6 +710,9 @@ def open_cvpipeline(*args):
                 # fprint("trying to analyze correct?")
 
                 #update info for seeking
+                #============== if you start seeking
+                # clear all deques
+                # ============================
                 if ("seek_req_val" in FCVAWidget_shared_metadata_dictVAR2 and        
                     FCVAWidget_shared_metadata_dictVAR2["seek_req_val"] != FCVAWidget_shared_metadata_dictVAR2["seek_req_val" + str(os.getpid())]
                     ):
@@ -691,6 +740,9 @@ def open_cvpipeline(*args):
                     #reset instance count to be at the right spot where internal_framecount is:
                     # fprint("internal framecount to instance", FCVAWidget_shared_metadata_dictVAR2["seek_req_val"],internal_framecount, maxpartitions, bufferlen,  instance_count)
 
+                #============== if raw deque is less than bufferlen/2 and you're supposed to read:
+                # fill raw_deque/raw_dequeKEYS
+                # ============================
                 #read frames in batches of bufferlen
                 if (len(raw_deque) <= int(bufferlen/2) and 
                     FCVAWidget_shared_metadata_dictVAR2["subprocessREAD" + str(pid)]
@@ -738,7 +790,10 @@ def open_cvpipeline(*args):
                         #need to delay setting ret...
                         #     FCVAWidget_shared_metadata_dictVAR2["pausetime"] = time.time()
                         internal_framecount += 1
-                    if len(raw_deque) != 10:
+                    #============== len(raw_deque) != bufferlen
+                    # cry about it
+                    # ============================
+                    if len(raw_deque) != bufferlen:
                         fprint("reading is wrekt", 
                                len(raw_deque), 
                                [raw_dequeKEYS[x] for x in range(len(raw_dequeKEYS))], 
