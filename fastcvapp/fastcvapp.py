@@ -767,7 +767,8 @@ def open_cvpipeline(*args):
                             frameheight = FCVAWidget_shared_metadata_dictVAR2["fdimension"][1] 
                             # framedata = cv2.resize(framedata, (1280, 720))
                             fprint("dimension types cv", type(framewidth), framewidth, type(frameheight), frameheight, "ORIGINAL SIZE: (in case it's 4k)", framedata.shape)
-                            framedata = cv2.resize(framedata, (framewidth, frameheight))
+                            # framedata = cv2.resize(framedata, (framewidth, frameheight))
+                            cv2.resize(framedata, (framewidth, frameheight))
                             # framedata = cv2.resize(framedata, (1920, 1080))
                             # framedata = cv2.resize(framedata, (640, 480))
                             # framedata = cv2.flip(framedata, 0) 
@@ -922,8 +923,6 @@ class FCVA:
                     kvinit_dict["fdimension"] = [1920, 1080]
                 if hasattr(self, "progenitor"):
                     kvinit_dict["progenitor"] = self.progenitor
-
-
 
                 bufferlen = 10
                 if hasattr(self, "cvpartitions"):
