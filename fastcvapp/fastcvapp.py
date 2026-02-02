@@ -420,7 +420,7 @@ def open_mediapipe_helper(*args): #actual silent error culprit?
                 VisionRunningMode = mp.tasks.vision.RunningMode
                 options = vision.PoseLandmarkerOptions(
                     base_options=base_options,
-                    running_mode=VisionRunningMode.VIDEO,
+                    running_mode=VisionRunningMode.IMAGE, #this cooked me, go to IMAGE: https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker
                     # model_complexity = 0,
                     #these were old settings, maybe it's too strict and not giving me poses
                     # min_pose_detection_confidence=0.6, min_tracking_confidence=0.6,
@@ -1790,6 +1790,18 @@ class FCVA:
                                 # fprint("shared_posedictVAR2", type(self.shared_source_posedict_list[shared_analyzedIndex][frameref])) #trying to match frame self.shared_analyzed
                             
                             # https://stackoverflow.com/questions/43748991/how-to-check-if-a-variable-is-either-a-python-list-numpy-array-or-pandas-series
+                            # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
+
+                            curr_shareddict_instance = int_to_partition(self.index,self.bufferlen,self.cvpartitions) 
+                            curr_shared_posedict_index = frameblock(0,curr_shareddict_instance,1,2)[0]
+                            correctkey = list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].keys())[list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()).index(self.index)]
+                            frameref = "frame" + correctkey.replace("key",'')
+
+                            fprint("dir if self, looking for shared_source_posedict", 
+                                #    dir(self)
+                                    f"self.shared_source_posedict_list {self.shared_source_posedict_list} self.shared_source_posedict_list look at dict + dict of keys {self.shared_source_posedict_list[0].keys()} {self.shared_source_posedict_list[1].keys()} key values {self.shared_source_posedict_list[1].values()} self.index {self.index} getting correct posedata for CURRENT frame self.index ")
+                                # {self.shared_source_posedict_list[curr_shared_posedict_index][frameref]}
+                            # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
                             if frame != None:
                                 frame = blosc2.decompress(frame)
                                 framewidth = self.FCVAWidget_shared_metadata_dict["fdimension"][0]
@@ -1838,12 +1850,18 @@ class FCVA:
                                         #     self.FCVAWidget_shared_metadata_dict["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
                                         # do normal (draw the future pose)
                                         
+                                        # =-=-=-= OLD WORKING =-=-=-=
+                                        # self.helper_func_dictVAR2["draw_available_landmarks"](
+                                        #     frame_copy,
+                                        #     cam_pose_image_data, #not being used anymore...
+                                        #     self.shared_camera_subprocess_dictVAR["future_display_posedata"],
+                                        #     self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
+
                                         self.helper_func_dictVAR2["draw_available_landmarks"](
                                             frame_copy,
                                             cam_pose_image_data, #not being used anymore...
-                                            self.shared_camera_subprocess_dictVAR["future_display_posedata"],
+                                            self.shared_source_posedict_list[curr_shared_posedict_index][frameref],
                                             self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
-
                                     else: # draw score
                                         # frame = self.helper_func_dictVAR2["draw_available_landmarks"](
                                         #     frame.copy(),
@@ -1852,12 +1870,23 @@ class FCVA:
                                         #     self.shared_camera_subprocess_dictVAR["test_posedictVAR"], 
                                         #     self.shared_camera_subprocess_dictVAR["scoredictVAR"])
                                         # # pass
+                                        
+                                        # =-=-=-= OLD WORKING =-=-=-=
+                                        # self.helper_func_dictVAR2["draw_available_landmarks"](
+                                        #     frame_copy,
+                                        #     cam_pose_image_data.copy(), 
+                                        #     self.shared_camera_subprocess_dictVAR["answer_posedictVAR"], 
+                                        #     self.shared_camera_subprocess_dictVAR["test_posedictVAR"], 
+                                        #     self.shared_camera_subprocess_dictVAR["scoredictVAR"])
+                                        
                                         self.helper_func_dictVAR2["draw_available_landmarks"](
                                             frame_copy,
                                             cam_pose_image_data.copy(), 
-                                            self.shared_camera_subprocess_dictVAR["answer_posedictVAR"], 
+                                            self.shared_source_posedict_list[curr_shared_posedict_index][frameref], 
                                             self.shared_camera_subprocess_dictVAR["test_posedictVAR"], 
                                             self.shared_camera_subprocess_dictVAR["scoredictVAR"])
+                                        
+
                                         # pass
                                     # fprint("blit frame??", type(frame))
                                 
@@ -2040,6 +2069,8 @@ class FCVA:
                                     pass
 
                                 fprint("blitting or not?")
+
+
                                 self.FCVAWidget_shared_metadata_dict["blit_observe"] = True
                             else:
                                 if self.index != 0:
