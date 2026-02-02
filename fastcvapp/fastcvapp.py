@@ -1840,10 +1840,9 @@ class FCVA:
                                         correctkey = list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].keys())[list(self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()).index(self.index)]
                                         frameref = "frame" + correctkey.replace("key",'')
 
-                                        fprint("dir if self, looking for shared_source_posedict", 
-                                            #    dir(self)
-                                                f"self.shared_source_posedict_list {self.shared_source_posedict_list} self.shared_source_posedict_list look at dict + dict of keys {self.shared_source_posedict_list[0].keys()} {self.shared_source_posedict_list[1].keys()} key values {self.shared_source_posedict_list[1].values()} self.index {self.index} getting correct posedata for CURRENT frame self.index ")
-                                            # {self.shared_source_posedict_list[curr_shared_posedict_index][frameref]}
+                                        # fprint("dir if self, looking for shared_source_posedict", 
+                                        #     #    dir(self)
+                                        #         f"self.shared_source_posedict_list {self.shared_source_posedict_list} self.shared_source_posedict_list look at dict + dict of keys {self.shared_source_posedict_list[0].keys()} {self.shared_source_posedict_list[1].keys()} key values {self.shared_source_posedict_list[1].values()} self.index {self.index} getting correct posedata for CURRENT frame self.index ")
                                         current_pose_debug_pose = self.shared_source_posedict_list[curr_shared_posedict_index][frameref] # now we set the current pose instead
                                     
                                     # # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
@@ -1871,6 +1870,31 @@ class FCVA:
                                                 cam_pose_image_data, #not being used anymore...
                                                 current_pose_debug_pose,
                                                 self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
+                                    if current_pose_debug:
+                                        font = cv2.FONT_HERSHEY_SIMPLEX
+                                        fontScale = .5
+                                        thickness = 2
+                                        color = (0, 255, 0)
+                                        cv2.putText(
+                                            frame_copy, 
+                                            f"what is framenumber? {self.index}", 
+                                            [100,
+                                            300], 
+                                            font, 
+                                            fontScale, 
+                                            color, 
+                                            thickness
+                                            ) 
+                                        cv2.putText(
+                                            frame_copy, 
+                                            f"what is posedata framenumber? {self.shared_pool_meta_list[shared_analyzedKeycountIndex].values()} VS correctkey {correctkey}", 
+                                            [100,
+                                            200], 
+                                            font, 
+                                            fontScale, 
+                                            color, 
+                                            thickness
+                                            ) 
                                             
                                     else: # draw score
                                         # frame = self.helper_func_dictVAR2["draw_available_landmarks"](
