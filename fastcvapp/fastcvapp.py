@@ -1859,10 +1859,7 @@ class FCVA:
                                             self.shared_camera_subprocess_dictVAR["test_posedictVAR"], 
                                             self.shared_camera_subprocess_dictVAR["scoredictVAR"])
                                         # pass
-
-
-                                    fprint("blit frame??", type(frame))
-                                
+                                    # fprint("blit frame??", type(frame))
                                 
                                 frame = cv2.flip(frame_copy, 0)
                                 buf = frame.tobytes()
