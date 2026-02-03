@@ -620,7 +620,7 @@ def open_cvpipeline(*args):
                 #  refill shared_posedictVAR['frame'+str(x)] from pose_deque 
                 #  ============================
                 if (len(analyzed_deque) == bufferlen and 
-                    (max(shared_analyzedKeycountVAR.values()) <= current_framenumber or 
+                    (max(shared_analyzedKeycountVAR.values()) < current_framenumber or # maybe <= means it updates on the edge frame, like on frame 129/130 it gets updated to the 160s
                      max(shared_analyzedKeycountVAR.values()) == -1
                     )):
                     prebuilt_timerdeque_dict["update_shared_dict_init"] = newwritestart
