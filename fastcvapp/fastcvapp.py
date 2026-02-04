@@ -1833,7 +1833,7 @@ class FCVA:
 
                                     # # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
 
-                                    current_pose_debug = True
+                                    current_pose_debug = False
                                     if current_pose_debug: 
                                         curr_shareddict_instance = int_to_partition(self.index,self.bufferlen,self.cvpartitions) 
                                         curr_shared_posedict_index = frameblock(0,curr_shareddict_instance,1,2)[0]
@@ -1846,31 +1846,9 @@ class FCVA:
                                         current_pose_debug_pose = self.shared_source_posedict_list[curr_shared_posedict_index][frameref] # now we set the current pose instead
                                     
                                     # # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
-
-
-                                    if test_time <= self.FCVAWidget_shared_metadata_dict["show_future_pose_time"]: #reminder that u already validated that info exists in earlier checks
-                                        # do normal (draw the future pose)
-                                        # frame = self.helper_func_dictVAR2["draw_available_landmarks"](
-                                        #     frame.copy(),
-                                        #     cam_pose_image_data.copy(), 
-                                        #     self.FCVAWidget_shared_metadata_dict["future_display_posedata"], 
-                                        #     self.FCVAWidget_shared_metadata_dict["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
-                                        # do normal (draw the future pose)
-                                        
-                                        # =-=-=-= OLD WORKING (literally just swapping to current pose as an arg)=-=-=-=
-                                        if not current_pose_debug:
-                                            self.helper_func_dictVAR2["draw_available_landmarks"](
-                                                frame_copy,
-                                                cam_pose_image_data, #not being used anymore...
-                                                self.shared_camera_subprocess_dictVAR["future_display_posedata"],
-                                                self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
-                                        else:
-                                            self.helper_func_dictVAR2["draw_available_landmarks"](
-                                                frame_copy,
-                                                cam_pose_image_data, #not being used anymore...
-                                                current_pose_debug_pose,
-                                                self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
-                                    if current_pose_debug:
+                                    fprint("why is it always on actually???", test_time, self.FCVAWidget_shared_metadata_dict["show_future_pose_time"])
+                                    # if current_pose_debug:
+                                    if True:
                                         font = cv2.FONT_HERSHEY_SIMPLEX
                                         fontScale = .5
                                         thickness = 2
@@ -1895,6 +1873,33 @@ class FCVA:
                                             color, 
                                             thickness
                                             ) 
+                                    else:
+                                        pass
+
+
+                                    if test_time <= self.FCVAWidget_shared_metadata_dict["show_future_pose_time"]: #reminder that u already validated that info exists in earlier checks
+                                        # do normal (draw the future pose)
+                                        # frame = self.helper_func_dictVAR2["draw_available_landmarks"](
+                                        #     frame.copy(),
+                                        #     cam_pose_image_data.copy(), 
+                                        #     self.FCVAWidget_shared_metadata_dict["future_display_posedata"], 
+                                        #     self.FCVAWidget_shared_metadata_dict["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
+                                        # do normal (draw the future pose)
+                                        
+                                        # =-=-=-= OLD WORKING (literally just swapping to current pose as an arg)=-=-=-=
+                                        if not current_pose_debug:
+                                            self.helper_func_dictVAR2["draw_available_landmarks"](
+                                                frame_copy,
+                                                cam_pose_image_data, #not being used anymore...
+                                                self.shared_camera_subprocess_dictVAR["future_display_posedata"],
+                                                self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
+                                        else:
+                                            self.helper_func_dictVAR2["draw_available_landmarks"](
+                                                frame_copy,
+                                                cam_pose_image_data, #not being used anymore...
+                                                current_pose_debug_pose,
+                                                self.shared_camera_subprocess_dictVAR["test_posedictVAR"], ) #there are def some dummy var here, namely arg 1 and 4, what matters is arg 0 and 2
+                                    
                                             
                                     else: # draw score
                                         # frame = self.helper_func_dictVAR2["draw_available_landmarks"](
