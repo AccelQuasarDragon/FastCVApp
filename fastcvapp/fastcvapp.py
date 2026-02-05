@@ -442,6 +442,7 @@ def open_cvpipeline(*args):
     try:
         import sys
         import os
+        import math
         appliedcv                           = args[0]
         shared_analyzedVAR                  = args[1]
         shared_analyzedKeycountVAR          = args[2]
@@ -457,6 +458,7 @@ def open_cvpipeline(*args):
         shared_timedictKEYSVAR              = args[12]
         shared_posedictVAR                  = args[13]
         shared_posedictKEYSVAR              = args[14]
+        shared_camera_subprocess_dictVAR    = args[15]
 
         #didn't know about apipreference: https://stackoverflow.com/questions/73753126/why-does-opencv-read-video-faster-than-ffmpeg
         #if source exists (that way you can just start the subprocess w/o requiring a source), if u change source you'll end up triggering the source change code in the while loop so ur good:
@@ -503,6 +505,9 @@ def open_cvpipeline(*args):
                 #============== if source is different, chance to updated source ============================
                 
                 #============== if starttime, NOT pausetime in this pid, and capfps key exists ============================
+
+                    #============== predict future frame and add it to shared_camera_subprocess_dictVAR
+                    #  ============================
 
                     #============== if analyzed_deque is maxed out, the max deque key is < current framenumber or max deque key is -1 
                     #  refill shared_posedictVAR['frame'+str(x)] from pose_deque 
@@ -585,7 +590,7 @@ def open_cvpipeline(*args):
                 "starttime" in FCVAWidget_shared_metadata_dictVAR2 and 
                 ("pausetime" not in FCVAWidget_shared_metadata_dictVAR2) and 
                 FCVAWidget_shared_metadata_dictVAR2["subprocess" + str(pid)] and 
-                "capfps" in FCVAWidget_shared_metadata_dictVAR2.keys()
+                "capfps" in FCVAWidget_shared_metadata_dictVAR2.keys() 
                 ):
                 #REMEMBER TO UPDATE FPS:
                 fps = FCVAWidget_shared_metadata_dictVAR2["capfps"]
@@ -616,6 +621,41 @@ def open_cvpipeline(*args):
                 
                 #send to shareddict for kivy to display
                 
+                #============== predict future frame and add it to shared_camera_subprocess_dictVAR
+                #  ============================
+                spf = (1/FCVAWidget_shared_metadata_dictVAR2["capfps"])
+                current_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)
+
+                # fprint("why is this not running???","show_future_pose_time" in shared_camera_subprocess_dictVAR.keys(), "show_analysis_time" in shared_camera_subprocess_dictVAR.keys(), "analysis_interval" in shared_camera_subprocess_dictVAR.keys())
+
+                if ("show_future_pose_time" in shared_camera_subprocess_dictVAR.keys() and
+                "show_analysis_time" in shared_camera_subprocess_dictVAR.keys() and
+                "analysis_interval" in shared_camera_subprocess_dictVAR.keys()): 
+                    
+                    # fprint("dictvar vals??", shared_camera_subprocess_dictVAR.values(), shared_camera_subprocess_dictVAR.keys())
+                    show_future_pose_time = shared_camera_subprocess_dictVAR["show_future_pose_time"] #show future pose and give time to adjust in seconds
+                    show_analysis_time = shared_camera_subprocess_dictVAR["show_analysis_time"] #show your score and give time to analyze in seconds
+                    analysis_interval = shared_camera_subprocess_dictVAR["analysis_interval"] #(this is because you need to grade before the frame at show_future_pose_time)
+
+                    video_time = (time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])
+
+                    test_time = video_time % (show_future_pose_time + show_analysis_time)
+                    current_frame_number = int((time.time() - FCVAWidget_shared_metadata_dictVAR2["starttime"])/spf)
+
+                    future_frame_number = current_frame_number + math.ceil(((((show_analysis_time + show_analysis_time) - test_time) + show_future_pose_time)/spf))
+
+                # fprint("this guy really invalues???", future_frame_number in list(analyzed_dequeKEYS), current_frame_number,  future_frame_number,list(analyzed_dequeKEYS))
+                if (
+                    # open_cvpipeline found the future frame
+                    future_frame_number in list(analyzed_dequeKEYS)
+                ): 
+                    # put it in the shareddict (these frames are already blosc compressed btw)
+                    correct_futureframe_index = list(analyzed_dequeKEYS).index(future_frame_number)
+                    shared_camera_subprocess_dictVAR["future_display_frame"] = analyzed_deque[correct_futureframe_index]
+                    shared_camera_subprocess_dictVAR["future_display_posedata"] = pose_deque[correct_futureframe_index]
+                    shared_camera_subprocess_dictVAR["future_frame_number"] = analyzed_dequeKEYS[correct_futureframe_index]
+                    shared_camera_subprocess_dictVAR["future_frame_number_predicted_opencvpipeline"] = future_frame_number #just to debug
+
                 #============== if analyzed_deque is maxed out, the max deque key is < current framenumber or max deque key is -1 
                 #  refill shared_posedictVAR['frame'+str(x)] from pose_deque 
                 #  ============================
@@ -1011,6 +1051,13 @@ class FCVA:
         fprint("check args for FCVAWidget_SubprocessInit", args)
         time.sleep(10)
         
+        shared_camera_subprocess_dict    = shared_mem_managerVAR.dict() #this needs to be higher as now open_camerapipeline and open_cvpipeline both need this arg to share future_frame/_pose data
+
+        shared_camera_subprocess_dict["show_future_pose_time"] = 1 #show future pose and give time to adjust in seconds
+        shared_camera_subprocess_dict["show_analysis_time"] = 1 #show your score and give time to analyze in seconds
+        shared_camera_subprocess_dict["analysis_interval"] = 0.25 #(this is because you need to grade before the frame at show_future_pose_time)
+        
+        fprint("orilkem with var being set here???",shared_camera_subprocess_dict["show_future_pose_time"] )
         for x in range(cvpartitionsVAR):
             #init analyzed/keycount dicts
             shared_analyzedA         = shared_mem_managerVAR.dict()
@@ -1033,6 +1080,7 @@ class FCVA:
                 shared_posedict["frame" + str(y)] = -1
                 shared_posedictKEYS["key" + str(y)] = -1
             
+
             #start the subprocesses
             cv_subprocessA = FCVA_mpVAR.Process(
                 target=open_cvpipeline,
@@ -1052,6 +1100,7 @@ class FCVA:
                     shared_timedictKEYS,
                     shared_posedict,
                     shared_posedictKEYS,
+                    shared_camera_subprocess_dict,
                 ),
             )
             cv_subprocessA.start()
@@ -1072,7 +1121,6 @@ class FCVA:
         if helper_func_dictVAR3 != None:
             if "open_camerapipelinekey" in helper_func_dictVAR3.keys():
                 #create a shareddict to stuff all the frames into so FCVAWidget_shared_metadata_dictVAR2 isn't overloaded
-                shared_camera_subprocess_dict    = shared_mem_managerVAR.dict()
 
                 camera_subprocessA = FCVA_mpVAR.Process(
                     target=helper_func_dictVAR3["open_camerapipelinekey"],
@@ -1797,6 +1845,7 @@ class FCVA:
                                 frameheight = self.FCVAWidget_shared_metadata_dict["fdimension"][1]
                                 fprint("dimension types blitting", type(framewidth), framewidth, type(frameheight), frameheight)
                                 frame = np.frombuffer(frame, np.uint8).copy().reshape(frameheight, framewidth, 3)
+                                frame_copy = frame.copy()
                                 # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 3)
                                 # frame = np.frombuffer(frame, np.uint8).copy().reshape(720, 1280, 4)
                                 # frame = np.frombuffer(frame, np.uint8).copy().reshape(480, 640, 3)
@@ -1805,7 +1854,19 @@ class FCVA:
                                 
                                 # fprint("DNE", "answer_posedictVAR" in self.FCVAWidget_shared_metadata_dict.keys(), self.FCVAWidget_shared_metadata_dict["answer_posedictVAR"])
                                 # fprint("pre alternator", self.FCVAWidget_shared_metadata_dict.keys())
-                                fprint("pre alternator2", "future_display_posedata" in self.shared_camera_subprocess_dictVAR.keys())
+                                fprint("pre alternator2", 
+                                       self.index, 
+                                       "future_display_posedata" in self.shared_camera_subprocess_dictVAR.keys(), 
+                                    "draw_available_landmarks" in self.helper_func_dictVAR2.keys(),
+                                    # "cam_pose_image" in self.shared_camera_subprocess_dictVAR.keys(),
+                                    # self.shared_camera_subprocess_dictVAR["cam_pose_image"] != None,
+                                    "answer_posedictVAR" in self.shared_camera_subprocess_dictVAR.keys(),
+                                    "test_posedictVAR" in self.shared_camera_subprocess_dictVAR.keys(),
+                                    "scoredictVAR" in self.shared_camera_subprocess_dictVAR.keys(),
+                                    "show_future_pose_time" in self.FCVAWidget_shared_metadata_dict.keys(),
+                                    "show_analysis_time" in self.FCVAWidget_shared_metadata_dict.keys(),
+                                    "future_display_posedata" in self.shared_camera_subprocess_dictVAR.keys()
+                                       )
                                 if (isinstance(frame,np.ndarray) and
                                     "draw_available_landmarks" in self.helper_func_dictVAR2.keys() and
                                     "cam_pose_image" in self.shared_camera_subprocess_dictVAR.keys() and
@@ -1829,7 +1890,6 @@ class FCVA:
                                     
                                     fprint("alternator times",test_time, self.FCVAWidget_shared_metadata_dict["show_future_pose_time"], self.FCVAWidget_shared_metadata_dict["show_analysis_time"],self.FCVAWidget_shared_metadata_dict["show_analysis_time"] == None, test_time < self.FCVAWidget_shared_metadata_dict["show_future_pose_time"])
                                     
-                                    frame_copy = frame.copy()
 
                                     # # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
 
@@ -1846,9 +1906,9 @@ class FCVA:
                                         current_pose_debug_pose = self.shared_source_posedict_list[curr_shared_posedict_index][frameref] # now we set the current pose instead
                                     
                                     # # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
-                                    fprint("why is it always on actually???", test_time, self.FCVAWidget_shared_metadata_dict["show_future_pose_time"])
-                                    # if current_pose_debug:
-                                    if True:
+                                    # fprint("why is it always on actually???", test_time, self.FCVAWidget_shared_metadata_dict["show_future_pose_time"])
+                                    if current_pose_debug:
+                                    # if True:
                                         font = cv2.FONT_HERSHEY_SIMPLEX
                                         fontScale = .5
                                         thickness = 2
@@ -1928,6 +1988,7 @@ class FCVA:
                                         # pass
                                     # fprint("blit frame??", type(frame))
                                 
+                                # fprint("frame_copy IS NOT A FRAME?? HOW ???", isinstance(frame_copy,np.ndarray))
                                 frame = cv2.flip(frame_copy, 0)
                                 buf = frame.tobytes()
                                 if isinstance(frame,np.ndarray): #trying bytes
