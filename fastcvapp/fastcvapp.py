@@ -232,7 +232,7 @@ def find_lib():
 
         #checking to see if pyinstaller module_collection_mode py sends the py file to tmpdir
         #only do it if sys has _MEIPASS (aka running from exe)
-        if hasattr(sys, "_MEIPASS"):
+        if hasattr(sys, "_MEIPASS") or '__compiled__' in dir(sys):
             my_module = modify_and_import("vlc", None, lambda src: src.replace(str1, str2))
             print("trying mod!", flush = True)
         else:
@@ -393,25 +393,13 @@ def open_mediapipe_helper(*args): #actual silent error culprit?
                     tasklocation = os.path.join(os.getcwd(), 'bin', 'pose_landmarker_full.task')
                 else: #assume it's run from py file, which in that case __file__ is sufficient:
                     os.chdir(os.path.dirname(__file__))
-                    # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
                     tasklocation = os.path.join(os.getcwd(), 'examples', 'bin', 'pose_landmarker_full.task')
 
             #dont rely on examples folder anymore, just assume it exists since fcva utils update resources is called
 
-
-            # tasklocation = os.path.dirname(sys.executable)
-            # tasklocation = os.path.join(os.path.dirname(sys.executable),"examples", "creativecommonsmedia", "pose_landmarker_lite.task")
-            # tasklocation = os.path.join(os.getcwd(),"examples", "creativecommonsmedia", "pose_landmarker_full.task")
-
-
             # if "examples" in os.getcwd().split(os.path.sep):
             #     # https://stackoverflow.com/a/51276165
             #     # tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_full.task")
-            #     tasklocation = os.path.join(os.sep, os.getcwd().split(os.path.sep)[0] + os.sep, *os.getcwd().split(os.path.sep), "creativecommonsmedia", "pose_landmarker_lite.task")
-            # else:
-            #     # tasklocation = 'examples\creativecommonsmedia\pose_landmarker_full.task'
-            #     tasklocation = 'examples\creativecommonsmedia\pose_landmarker_lite.task'
-
             fprint("tasklocation?", tasklocation)
 
             with open(tasklocation, 'rb') as f:
@@ -805,12 +793,8 @@ def open_cvpipeline(*args):
                             # i might not be picking up a pose because the frame is being read upside down, flip it first before analyzing with mediapipe
                             framewidth = FCVAWidget_shared_metadata_dictVAR2["fdimension"][0]
                             frameheight = FCVAWidget_shared_metadata_dictVAR2["fdimension"][1] 
-                            # framedata = cv2.resize(framedata, (1280, 720))
                             fprint("dimension types cv", type(framewidth), framewidth, type(frameheight), frameheight, "ORIGINAL SIZE: (in case it's 4k)", framedata.shape)
-                            # framedata = cv2.resize(framedata, (framewidth, frameheight))
                             cv2.resize(framedata, (framewidth, frameheight))
-                            # framedata = cv2.resize(framedata, (1920, 1080))
-                            # framedata = cv2.resize(framedata, (640, 480))
                             # framedata = cv2.flip(framedata, 0) 
                             # framedata = cv2.cvtColor(framedata, cv2.COLOR_RGB2BGR)
                             keyinfo = framelist[x % bufferlen]
@@ -922,7 +906,6 @@ class FCVA:
                         elif len(solution) != 1:
                             #warn user if multiple paths detected or none:
                             fprint("check your env, there should only be one path to source:", self.source, "possible sources:", solution)
-                        # self.source = os.path.join(*solution[0].resolve().__str__().split(os.sep))
                         self.source = solution[0].resolve().__str__()
                         if not os.path.isfile(self.source):
                             fprint("Source failed isfile check (so it doesn't exist or cannot be found): " + self.source, type(self.source))
