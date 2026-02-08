@@ -7,10 +7,21 @@ import numpy as np
 # import math
 import webbrowser
 from sys import platform
+from pathlib import Path
 
 try:
-    if platform == "win32": 
+    if platform == "win32" and '__compiled__' in dir(sys): 
+        # apparently I can just set this: 
+        cwd = str(Path.cwd() / "libvlc.dll")
+        os.environ["PYTHON_VLC_LIB_PATH"] = cwd
+        print("cwd in win32 for vlc",cwd) 
+        # cwd_plugins = str(Path.cwd() / "plugins")
+        # sys.path.append(cwd_plugins)
         import vlc
+        print("vlc dir", dir(vlc))
+    elif platform == "win32":
+        import vlc
+        print("vlc dir", dir(vlc))
     #update vlc on mac as per: kivyschool add-vlc-to-pyinstaller
     if platform == "darwin": 
         str1 = r'''
