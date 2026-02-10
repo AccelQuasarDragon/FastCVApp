@@ -14,7 +14,7 @@ try:
         # apparently I can just set this: 
         cwd = str(Path.cwd() / "libvlc.dll")
         os.environ["PYTHON_VLC_LIB_PATH"] = cwd
-        print("cwd in win32 for vlc",cwd) 
+        # print("cwd in win32 for vlc",cwd) 
         # cwd_plugins = str(Path.cwd() / "plugins")
         # sys.path.append(cwd_plugins)
         import vlc
