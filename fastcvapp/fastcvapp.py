@@ -10,7 +10,7 @@ from sys import platform
 from pathlib import Path
 
 try:
-    if platform == "win32" and '__compiled__' in dir(sys): 
+    if platform == "win32" and '__compiled__' in dir(sys): #module doesn't matter but u need to check the compiled attrib as set by nuitka
         # apparently I can just set this: 
         cwd = str(Path.cwd() / "libvlc.dll")
         os.environ["PYTHON_VLC_LIB_PATH"] = cwd
@@ -393,11 +393,11 @@ def open_mediapipe_helper(*args): #actual silent error culprit?
                 if hasattr(sys, "_MEIPASS") and "fastcvapp" in tasklocation:
                     tasklocation = os.path.join(sys._MEIPASS, 'bin', 'pose_landmarker_full.task')
                 
-            if platform == "darwin":
+            if platform == "darwin": 
                 fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
                 #things are different depending if it's in pyinstaller or not
                 import sys
-                if hasattr(sys, "_MEIPASS"):
+                if hasattr(sys, "_MEIPASS") or '__compiled__' in dir(sys): #module doesn't matter but u need to check the compiled attrib as set by nuitka::
                     # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
                     os.chdir(os.path.dirname(sys.executable))
                     # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
@@ -901,17 +901,26 @@ class FCVA:
 
                     elif platform == "win32" or platform == "darwin":
                         #TL:DR; this block of code looks for self.source using rglob and looks through sys.path, os.getcwd and sys.MEIPASS to cover all my bases, if it finds more than 1 source it complains and throws an error
-                        if hasattr(sys, "_MEIPASS"):
+                        if hasattr(sys, "_MEIPASS"): 
                             suspectedpathlist = sys.path+[os.getcwd(), sys._MEIPASS]
                         else:
                             suspectedpathlist = sys.path+[os.getcwd()]
+                        print("is this even on", os.getcwd())
+                        if '__compiled__' in dir(sys): #module doesn't matter but u need to check the compiled attrib as set by nuitka:
+                            print("os cwd in nuitka", os.getcwd())
+                            suspectedpathlist = sys.path+[os.getcwd()]
+                            # list(pathlib.Path(suspectedpathlist[0]).rglob(sourcelocation))
                         solution = []
                         for pathstr in suspectedpathlist:
                             pathoption = list(pathlib.Path(pathstr).rglob(self.source))
-                            testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
-                            if pathoption != [] and testfilter != []:
-                                # solution.append(*testfilter)
-                                solution += testfilter
+                            print("is this even on 2", pathstr, pathoption)
+                            # testfilter = [pathselection for pathselection in pathoption if ".app" not in pathselection.resolve().__str__()]
+                            # print("is this even on 3", pathstr, testfilter)
+                            # if pathoption != [] and testfilter != []:
+                            # #     # solution.append(*testfilter)
+                            #     solution += testfilter
+                            if pathoption != []:
+                                solution += pathoption
                         if len(solution) == 0:
                             fprint("Source failed isfile check for current directory:", self.source,", checked these paths:",suspectedpathlist,"check your env", solution)
                         elif len(solution) != 1:
