@@ -188,7 +188,10 @@ def find_lib():
             dll = ctypes.CDLL(p)
 
     elif sys.platform.startswith('darwin'):
-        d = sys._MEIPASS
+        if "_MEIPASS" in dir(sys):
+            d = sys._MEIPASS
+        elif :
+            d = Path(__file__).resolve().parent
         c = os.path.join(d, "libvlccore.dylib")
         p = os.path.join(d, "libvlc.dylib")
         print("paths exists and loaded?", c, p, os.path.exists(p), os.path.exists(c))
@@ -227,6 +230,7 @@ def find_lib():
 
         # https://stackoverflow.com/questions/41858147/how-to-modify-imported-source-code-on-the-fly
         def modify_and_import(module_name, package, modification_func):
+            print("failed??", module_name, package)
             spec = importlib.util.find_spec(module_name, package)
             source = spec.loader.get_source(module_name)
             new_source = modification_func(source)
@@ -243,9 +247,24 @@ def find_lib():
 
         #checking to see if pyinstaller module_collection_mode py sends the py file to tmpdir
         #only do it if sys has _MEIPASS (aka running from exe)
-        if hasattr(sys, "_MEIPASS") or '__compiled__' in dir(sys):
-            my_module = modify_and_import("vlc", None, lambda src: src.replace(str1, str2))
-            print("trying mod!", flush = True)
+
+        # man copilot is freaking smart now
+        this_module = sys.modules[__name__]
+        # is_compiled = getattr(this_module, "__compiled__", False)
+        is_compiled = "__compiled__" in dir(this_module)
+
+        print("This module compiled:", is_compiled)
+        if hasattr(sys, "_MEIPASS") or is_compiled:
+            # my_module = modify_and_import("vlc", None, lambda src: src.replace(str1, str2))
+            # print("trying mod!", flush = True)
+            here = Path(__file__).resolve().parent
+            cwd = str(here / "libvlc.dylib")
+            plugins = str(here / "plugins")
+            print("setting python vlc path", cwd, "isfile", Path(cwd).is_file(), flush = True)
+            os.environ["PYTHON_VLC_LIB_PATH"] = cwd
+            os.environ["VLC_PLUGIN_PATH"] = plugins
+            # os.environ["PYTHON_VLC_LIB_PATH"] = str("/Users/raidraptorultimatefalcon/CODING/VDSpythonpivot/VDSpoetry2023/AmazingDanceStar/FastCVApp/fastcvapp/libvlc.dylib")
+            # os.environ["VLC_PLUGIN_PATH"] = str("/Users/raidraptorultimatefalcon/CODING/VDSpythonpivot/VDSpoetry2023/AmazingDanceStar/FastCVApp/fastcvapp/plugins")
         else:
             print("not in pyinstaller, keeping vlc as is!", flush = True)
         import vlc
