@@ -10,7 +10,7 @@ from sys import platform
 from pathlib import Path
 
 try:
-    if platform == "win32" and '__compiled__' in dir(sys): #module doesn't matter but u need to check the compiled attrib as set by nuitka
+    if platform == "win32" and '__compiled__' in dir(sys.modules[__name__]): #module doesn't matter but u need to check the compiled attrib as set by nuitka
         # apparently I can just set this: 
         cwd = str(Path.cwd() / "libvlc.dll")
         os.environ["PYTHON_VLC_LIB_PATH"] = cwd
@@ -261,6 +261,7 @@ def find_lib():
             cwd = str(here / "libvlc.dylib")
             plugins = str(here / "plugins")
             print("setting python vlc path", cwd, "isfile", Path(cwd).is_file(), flush = True)
+            print("setting python vlc pluginspath", plugins, "isdir", Path(plugins).is_dir(), flush = True)
             os.environ["PYTHON_VLC_LIB_PATH"] = cwd
             os.environ["VLC_PLUGIN_PATH"] = plugins
             # os.environ["PYTHON_VLC_LIB_PATH"] = str("/Users/raidraptorultimatefalcon/CODING/VDSpythonpivot/VDSpoetry2023/AmazingDanceStar/FastCVApp/fastcvapp/libvlc.dylib")
@@ -407,7 +408,7 @@ def open_mediapipe_helper(*args): #actual silent error culprit?
             if platform == "win32":
                 #hope this works for both py file and running from pyinstaller, i'll have to check
                 # tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
-                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'bin', 'pose_landmarker_full.task')
+                tasklocation = os.path.join(os.path.dirname(__file__), 'examples', 'bin', 'pose_landmarker_full.task') #this might also work with '__compiled__' in dir(sys.modules[__name__])
                 #now to acommodate if this was made with pyinstaller as a module:
                 if hasattr(sys, "_MEIPASS") and "fastcvapp" in tasklocation:
                     tasklocation = os.path.join(sys._MEIPASS, 'bin', 'pose_landmarker_full.task')
@@ -416,7 +417,7 @@ def open_mediapipe_helper(*args): #actual silent error culprit?
                 fprint("old cwd", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
                 #things are different depending if it's in pyinstaller or not
                 import sys
-                if hasattr(sys, "_MEIPASS") or '__compiled__' in dir(sys): #module doesn't matter but u need to check the compiled attrib as set by nuitka::
+                if hasattr(sys, "_MEIPASS") or '__compiled__' in dir(sys.modules[__name__]): #module doesn't matter but u need to check the compiled attrib as set by nuitka::
                     # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
                     os.chdir(os.path.dirname(sys.executable))
                     # tasklocation = os.path.join(os.getcwd(), 'examples', 'creativecommonsmedia', 'pose_landmarker_lite.task')
@@ -925,7 +926,7 @@ class FCVA:
                         else:
                             suspectedpathlist = sys.path+[os.getcwd()]
                         print("is this even on", os.getcwd())
-                        if '__compiled__' in dir(sys): #module doesn't matter but u need to check the compiled attrib as set by nuitka:
+                        if '__compiled__' in dir(sys.modules[__name__]): #module doesn't matter but u need to check the compiled attrib as set by nuitka:
                             print("os cwd in nuitka", os.getcwd())
                             suspectedpathlist = sys.path+[os.getcwd()]
                             # list(pathlib.Path(suspectedpathlist[0]).rglob(sourcelocation))
