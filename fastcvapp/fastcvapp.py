@@ -257,6 +257,14 @@ def find_lib():
         if hasattr(sys, "_MEIPASS") or is_compiled:
             # my_module = modify_and_import("vlc", None, lambda src: src.replace(str1, str2))
             # print("trying mod!", flush = True)
+
+            vlc_root = Path(__file__).resolve().parents[2] / "Frameworks" / "VLC.app" / "Contents" / "MacOS"
+            print("whgat is vlc_root?", vlc_root, flush = True)
+            # os.environ["VLC_PLUGIN_PATH"] = str(vlc_root / "plugins")
+            # os.environ["DYLD_LIBRARY_PATH"] = str(vlc_root)
+
+            
+            # this was working (but no audio why..)
             here = Path(__file__).resolve().parent
             cwd = str(here / "libvlc.dylib")
             plugins = str(here / "plugins")
@@ -264,10 +272,23 @@ def find_lib():
             print("setting python vlc pluginspath", plugins, "isdir", Path(plugins).is_dir(), flush = True)
             os.environ["PYTHON_VLC_LIB_PATH"] = cwd
             os.environ["VLC_PLUGIN_PATH"] = plugins
+            os.environ["DYLD_LIBRARY_PATH"] = str(here) #bruh copilot knew about this, apparently it's a mac specific thing for dynamic linking
+
+
             # os.environ["PYTHON_VLC_LIB_PATH"] = str("/Users/raidraptorultimatefalcon/CODING/VDSpythonpivot/VDSpoetry2023/AmazingDanceStar/FastCVApp/fastcvapp/libvlc.dylib")
             # os.environ["VLC_PLUGIN_PATH"] = str("/Users/raidraptorultimatefalcon/CODING/VDSpythonpivot/VDSpoetry2023/AmazingDanceStar/FastCVApp/fastcvapp/plugins")
         else:
-            print("not in pyinstaller, keeping vlc as is!", flush = True)
+            # print("not in pyinstaller, keeping vlc as is!", flush = True)
+            print("not in pyinstaller, using internal vlc!", flush = True)
+            here = Path(__file__).resolve().parent
+            cwd = str(here / "libvlc.dylib")
+            plugins = str(here / "plugins")
+            print("setting python vlc path", cwd, "isfile", Path(cwd).is_file(), flush = True)
+            print("setting python vlc pluginspath", plugins, "isdir", Path(plugins).is_dir(), flush = True)
+            os.environ["PYTHON_VLC_LIB_PATH"] = cwd
+            os.environ["VLC_PLUGIN_PATH"] = plugins
+            os.environ["DYLD_LIBRARY_PATH"] = str(here) #bruh copilot knew about this, apparently it's a mac specific thing for dynamic linking
+
         import vlc
 except Exception as e: 
     print("fcva import vlc died!", e)
@@ -1604,13 +1625,24 @@ class FCVA:
                     if hasattr(self, "vlc_player"):
                         volval = int((self.ids['volsliderID'].value/self.ids['volsliderID'].max)*100)
                         self.vlc_player.audio_set_volume(volval)
+
+                        intst = vlc.Instance()
+                        outputs = intst.audio_output_list_get()
+                        # Helper generator to make the linked list iterable
+                        # def iterate_vlc_list(node):
+                        #     while node:
+                        #         yield node.contents
+                        #         node = node.next
+
                         fprint("volslider touchup args?", 
                             args, 
                             self.ids['volsliderID'].value,
                             self.ids['volsliderID'].max,
                             volval, 
                             "getvol:", 
-                            self.vlc_player.audio_get_volume()
+                            self.vlc_player.audio_get_volume(),
+                            # self.vlc_player.audio_output_device_get(),
+                            # [{"name": n.name.decode(), "desc": n.description.decode()} for n in outputs],
                             )
 
                 def updateSliderData(self, *args):
