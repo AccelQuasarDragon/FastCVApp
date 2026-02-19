@@ -24,226 +24,24 @@ try:
         print("vlc dir", dir(vlc))
     #update vlc on mac as per: kivyschool add-vlc-to-pyinstaller
     if platform == "darwin": 
-        str1 = r'''
-def find_lib():
-    dll = None
-    plugin_path = os.environ.get('PYTHON_VLC_MODULE_PATH', None)
-    if 'PYTHON_VLC_LIB_PATH' in os.environ:
-        try:
-            dll = ctypes.CDLL(os.environ['PYTHON_VLC_LIB_PATH'])
-        except OSError:
-            logger.error("Cannot load lib specified by PYTHON_VLC_LIB_PATH env. variable")
-            sys.exit(1)
-    if plugin_path and not os.path.isdir(plugin_path):
-        logger.error("Invalid PYTHON_VLC_MODULE_PATH specified. Please fix.")
-        sys.exit(1)
-    if dll is not None:
-        return dll, plugin_path
-
-    if sys.platform.startswith('win'):
-        libname = 'libvlc.dll'
-        p = find_library(libname)
-        if p is None:
-            try:  # some registry settings
-                # leaner than win32api, win32con
-                if PYTHON3:
-                    import winreg as w
-                else:
-                    import _winreg as w
-                for r in w.HKEY_LOCAL_MACHINE, w.HKEY_CURRENT_USER:
-                    try:
-                        r = w.OpenKey(r, 'Software\\VideoLAN\\VLC')
-                        plugin_path, _ = w.QueryValueEx(r, 'InstallDir')
-                        w.CloseKey(r)
-                        break
-                    except w.error:
-                        pass
-            except ImportError:  # no PyWin32
-                pass
-            if plugin_path is None:
-                # try some standard locations.
-                programfiles = os.environ["ProgramFiles"]
-                homedir = os.environ["HOMEDRIVE"]
-                for p in ('{programfiles}\\VideoLan{libname}', '{homedir}:\\VideoLan{libname}',
-                          '{programfiles}{libname}',           '{homedir}:{libname}'):
-                    p = p.format(homedir = homedir,
-                                 programfiles = programfiles,
-                                 libname = '\\VLC\\' + libname)
-                    if os.path.exists(p):
-                        plugin_path = os.path.dirname(p)
-                        break
-            if plugin_path is not None:  # try loading
-                 # PyInstaller Windows fix
-                if 'PyInstallerCDLL' in ctypes.CDLL.__name__:
-                    ctypes.windll.kernel32.SetDllDirectoryW(None)
-                p = os.getcwd()
-                os.chdir(plugin_path)
-                 # if chdir failed, this will raise an exception
-                dll = ctypes.CDLL('.\\' + libname)
-                 # restore cwd after dll has been loaded
-                os.chdir(p)
-            else:  # may fail
-                dll = ctypes.CDLL('.\\' + libname)
-        else:
-            plugin_path = os.path.dirname(p)
-            dll = ctypes.CDLL(p)
-
-    elif sys.platform.startswith('darwin'):
-        # FIXME: should find a means to configure path
-        d = '/Applications/VLC.app/Contents/MacOS/'
-        c = d + 'lib/libvlccore.dylib'
-        p = d + 'lib/libvlc.dylib'
-        if os.path.exists(p) and os.path.exists(c):
-            # pre-load libvlccore VLC 2.2.8+
-            ctypes.CDLL(c)
-            dll = ctypes.CDLL(p)
-            for p in ('modules', 'plugins'):
-                p = d + p
-                if os.path.isdir(p):
-                    plugin_path = p
-                    break
-        else:  # hope, some [DY]LD_LIBRARY_PATH is set...
-            # pre-load libvlccore VLC 2.2.8+
-            ctypes.CDLL('libvlccore.dylib')
-            dll = ctypes.CDLL('libvlc.dylib')
-
-    else:
-        # All other OSes (linux, freebsd...)
-        p = find_library('vlc')
-        try:
-            dll = ctypes.CDLL(p)
-        except OSError:  # may fail
-            dll = None
-        if dll is None:
-            try:
-                dll = ctypes.CDLL('libvlc.so.5')
-            except:
-                raise NotImplementedError('Cannot find libvlc lib')
-
-    return (dll, plugin_path)
-'''
-
-        str2 = r'''
-def find_lib():
-    dll = None
-    plugin_path = os.environ.get('PYTHON_VLC_MODULE_PATH', None)
-    if 'PYTHON_VLC_LIB_PATH' in os.environ:
-        try:
-            dll = ctypes.CDLL(os.environ['PYTHON_VLC_LIB_PATH'])
-        except OSError:
-            logger.error("Cannot load lib specified by PYTHON_VLC_LIB_PATH env. variable")
-            sys.exit(1)
-    if plugin_path and not os.path.isdir(plugin_path):
-        logger.error("Invalid PYTHON_VLC_MODULE_PATH specified. Please fix.")
-        sys.exit(1)
-    if dll is not None:
-        return dll, plugin_path
-
-    if sys.platform.startswith('win'):
-        libname = 'libvlc.dll'
-        p = find_library(libname)
-        if p is None:
-            try:  # some registry settings
-                # leaner than win32api, win32con
-                if PYTHON3:
-                    import winreg as w
-                else:
-                    import _winreg as w
-                for r in w.HKEY_LOCAL_MACHINE, w.HKEY_CURRENT_USER:
-                    try:
-                        r = w.OpenKey(r, 'Software\\VideoLAN\\VLC')
-                        plugin_path, _ = w.QueryValueEx(r, 'InstallDir')
-                        w.CloseKey(r)
-                        break
-                    except w.error:
-                        pass
-            except ImportError:  # no PyWin32
-                pass
-            if plugin_path is None:
-                # try some standard locations.
-                programfiles = os.environ["ProgramFiles"]
-                homedir = os.environ["HOMEDRIVE"]
-                for p in ('{programfiles}\\VideoLan{libname}', '{homedir}:\\VideoLan{libname}',
-                          '{programfiles}{libname}',           '{homedir}:{libname}'):
-                    p = p.format(homedir = homedir,
-                                 programfiles = programfiles,
-                                 libname = '\\VLC\\' + libname)
-                    if os.path.exists(p):
-                        plugin_path = os.path.dirname(p)
-                        break
-            if plugin_path is not None:  # try loading
-                 # PyInstaller Windows fix
-                if 'PyInstallerCDLL' in ctypes.CDLL.__name__:
-                    ctypes.windll.kernel32.SetDllDirectoryW(None)
-                p = os.getcwd()
-                os.chdir(plugin_path)
-                 # if chdir failed, this will raise an exception
-                dll = ctypes.CDLL('.\\' + libname)
-                 # restore cwd after dll has been loaded
-                os.chdir(p)
-            else:  # may fail
-                dll = ctypes.CDLL('.\\' + libname)
-        else:
-            plugin_path = os.path.dirname(p)
-            dll = ctypes.CDLL(p)
-
-    elif sys.platform.startswith('darwin'):
-        if "_MEIPASS" in dir(sys):
-            d = sys._MEIPASS
-        elif :
-            d = Path(__file__).resolve().parent
-        c = os.path.join(d, "libvlccore.dylib")
-        p = os.path.join(d, "libvlc.dylib")
-        print("paths exists and loaded?", c, p, os.path.exists(p), os.path.exists(c))
-        if os.path.exists(p) and os.path.exists(c):
-            # pre-load libvlccore VLC 2.2.8+
-            ctypes.CDLL(c)
-            dll = ctypes.CDLL(p)
-            for p in ('modules', 'plugins'):
-                p = os.path.join(d, p)
-                print("newp?", p)
-                if os.path.isdir(p):
-                    plugin_path = p
-                    print("pluginpath", plugin_path, os.path.exists(plugin_path))
-                    break
-        else:  # hope, some [DY]LD_LIBRARY_PATH is set...
-            # pre-load libvlccore VLC 2.2.8+
-            ctypes.CDLL('libvlccore.dylib')
-            dll = ctypes.CDLL('libvlc.dylib')
-
-    else:
-        # All other OSes (linux, freebsd...)
-        p = find_library('vlc')
-        try:
-            dll = ctypes.CDLL(p)
-        except OSError:  # may fail
-            dll = None
-        if dll is None:
-            try:
-                dll = ctypes.CDLL('libvlc.so.5')
-            except:
-                raise NotImplementedError('Cannot find libvlc lib')
-
-    return (dll, plugin_path)
-    '''
         import importlib
-
+        #don't need this anymore as I set the os env but it's still good to have a monkeypatch example lying around
         # https://stackoverflow.com/questions/41858147/how-to-modify-imported-source-code-on-the-fly
-        def modify_and_import(module_name, package, modification_func):
-            print("failed??", module_name, package)
-            spec = importlib.util.find_spec(module_name, package)
-            source = spec.loader.get_source(module_name)
-            new_source = modification_func(source)
-            # print("new source changed?", type(source), new_source)
-            print("check str1 in ", str1 in new_source, str2 in new_source)
-            #make sure str2 actually in new_source else raise error:
-            if str2 not in new_source:
-                raise Exception('str2 not in new_source AKA either vlc changed or modify_and_import is not working, check itout')
-            module = importlib.util.module_from_spec(spec) #this is always the killer line, because vlc runs find_lib() immediately AKA it explodes (only when packaging .pyc file with PyInstaller)
-            codeobj = compile(new_source, module.__spec__.origin, 'exec')
-            exec(codeobj, module.__dict__)
-            sys.modules[module_name] = module
-            return module
+        # def modify_and_import(module_name, package, modification_func):
+        #     print("failed??", module_name, package)
+        #     spec = importlib.util.find_spec(module_name, package)
+        #     source = spec.loader.get_source(module_name)
+        #     new_source = modification_func(source)
+        #     # print("new source changed?", type(source), new_source)
+        #     print("check str1 in ", str1 in new_source, str2 in new_source)
+        #     #make sure str2 actually in new_source else raise error:
+        #     if str2 not in new_source:
+        #         raise Exception('str2 not in new_source AKA either vlc changed or modify_and_import is not working, check itout')
+        #     module = importlib.util.module_from_spec(spec) #this is always the killer line, because vlc runs find_lib() immediately AKA it explodes (only when packaging .pyc file with PyInstaller)
+        #     codeobj = compile(new_source, module.__spec__.origin, 'exec')
+        #     exec(codeobj, module.__dict__)
+        #     sys.modules[module_name] = module
+        #     return module
 
         #checking to see if pyinstaller module_collection_mode py sends the py file to tmpdir
         #only do it if sys has _MEIPASS (aka running from exe)
@@ -273,8 +71,6 @@ def find_lib():
             os.environ["PYTHON_VLC_LIB_PATH"] = cwd
             os.environ["VLC_PLUGIN_PATH"] = plugins
             os.environ["DYLD_LIBRARY_PATH"] = str(here) #bruh copilot knew about this, apparently it's a mac specific thing for dynamic linking
-
-
             # os.environ["PYTHON_VLC_LIB_PATH"] = str("/Users/raidraptorultimatefalcon/CODING/VDSpythonpivot/VDSpoetry2023/AmazingDanceStar/FastCVApp/fastcvapp/libvlc.dylib")
             # os.environ["VLC_PLUGIN_PATH"] = str("/Users/raidraptorultimatefalcon/CODING/VDSpythonpivot/VDSpoetry2023/AmazingDanceStar/FastCVApp/fastcvapp/plugins")
         else:
@@ -1356,7 +1152,7 @@ class FCVA:
                         fprint("old cwd updatebbuttons", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
                         #things are different depending if it's in pyinstaller or not
                         import sys
-                        if hasattr(sys, "_MEIPASS"):
+                        if hasattr(sys, "_MEIPASS") or '__compiled__' in dir(sys.modules[__name__]):
                             # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
                             os.chdir(os.path.dirname(sys.executable))
                             disc_location = os.path.join(os.getcwd(), 'bin', 'resources', 'discord-icon.png')
@@ -2302,6 +2098,8 @@ class FCVA:
             font_size: root.dpupdate(self.height, 0.7)
     Image:
         id: image_textureID
+        allow_stretch:True 
+        keep_ratio:True 
     # BoxLayout:
     #     id: devLayoutID
     #     orientation: 'horizontal'
@@ -2468,7 +2266,7 @@ FCVA_screen_manager: #remember to return a root widget
                             fprint("old cwd updatebbuttons", os.getcwd(), "changeddir!", os.path.dirname(sys.executable))
                             #things are different depending if it's in pyinstaller or not
                             import sys
-                            if hasattr(sys, "_MEIPASS"):
+                            if hasattr(sys, "_MEIPASS") or '__compiled__' in dir(sys.modules[__name__]):
                                 # if file is frozen by pyinstaller you __file__ is the actual file in the tempdir. I want the exe location, so try sys.executable
                                 os.chdir(os.path.dirname(sys.executable))
                                 ico_location = os.path.join(os.getcwd(), 'bin', 'resources', iconame)
