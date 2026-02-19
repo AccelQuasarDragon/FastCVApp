@@ -705,6 +705,39 @@ def open_cvpipeline(*args):
         print("full exception", fullerr)
         FCVAWidget_shared_metadata_dictVAR2["cv_pipebreak" + str(os.getpid())] != fullerr
 
+# Source - https://stackoverflow.com/a/62639343
+# Posted by G M, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-02-19, License - CC BY-SA 4.0
+
+    
+    
+# import cv2
+def list_ports():
+    """
+    Test the ports and returns a tuple with the available ports and the ones that are working.
+    """
+    non_working_ports = []
+    dev_port = 0
+    working_ports = []
+    available_ports = []
+    while len(non_working_ports) < 6: # if there are more than 5 non working ports stop the testing. 
+        camera = cv2.VideoCapture(dev_port)
+        if not camera.isOpened():
+            non_working_ports.append(dev_port)
+            print("Port %s is not working." %dev_port)
+        else:
+            is_reading, img = camera.read()
+            w = camera.get(3)
+            h = camera.get(4)
+            if is_reading:
+                print("Port %s is working and reads images (%s x %s)" %(dev_port,h,w))
+                working_ports.append(dev_port)
+            else:
+                print("Port %s for camera ( %s x %s) is present but does not reads." %(dev_port,h,w))
+                available_ports.append(dev_port)
+        dev_port +=1
+    return available_ports,working_ports,non_working_ports
+
 class FCVA:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1087,6 +1120,7 @@ class FCVA:
                         Clock.schedule_once(self.updatevolumeLabelID, 0)
                         Clock.schedule_once(self.updatevolumeSlider, 0)
                         Clock.schedule_once(self.updateBButtons, 0)
+                        Clock.schedule_once(self.updateCameraSpinner, 0)
                         
                         # set vlc player:
                         self.vlc_player = vlc.MediaPlayer() #ADDVLC
@@ -1097,41 +1131,12 @@ class FCVA:
                         self.vidslider_firsttouch = False
 
                         #update CameraDDID
+                        camlist = list_ports()[1]
+                        fprint("listed ports", camlist)
 
-                        # Source - https://stackoverflow.com/a/62639343
-                        # Posted by G M, modified by community. See post 'Timeline' for change history
-                        # Retrieved 2026-02-19, License - CC BY-SA 4.0
-
-                        import cv2
-                            
-                            
-                        def list_ports():
-                            """
-                            Test the ports and returns a tuple with the available ports and the ones that are working.
-                            """
-                            non_working_ports = []
-                            dev_port = 0
-                            working_ports = []
-                            available_ports = []
-                            while len(non_working_ports) < 6: # if there are more than 5 non working ports stop the testing. 
-                                camera = cv2.VideoCapture(dev_port)
-                                if not camera.isOpened():
-                                    non_working_ports.append(dev_port)
-                                    print("Port %s is not working." %dev_port)
-                                else:
-                                    is_reading, img = camera.read()
-                                    w = camera.get(3)
-                                    h = camera.get(4)
-                                    if is_reading:
-                                        print("Port %s is working and reads images (%s x %s)" %(dev_port,h,w))
-                                        working_ports.append(dev_port)
-                                    else:
-                                        print("Port %s for camera ( %s x %s) is present but does not reads." %(dev_port,h,w))
-                                        available_ports.append(dev_port)
-                                dev_port +=1
-                            return available_ports,working_ports,non_working_ports
-                        
-                        fprint("listed ports", list_ports()[1])
+                        self.FCVAWidget_shared_metadata_dict["available_cam_list"] = camlist
+                        if len(camlist) > 0:
+                            self.FCVAWidget_shared_metadata_dict["chosen_cam_int"] = camlist[0]
 
 
                         initdatalist = FCVA.FCVAWidget_SubprocessInit(
@@ -1206,6 +1211,21 @@ class FCVA:
                     self.ids["patr_buttonID"].source = patr_location
                     self.ids["disc_buttonID"].source = disc_location
                     fprint("progenitor","progenitor" in self.kvinit_dictVAR2.keys(), "disc", disc_location, "patr", patr_location, self) # self.kvinit_dictVAR2["progenitor"],
+                
+                def updateCameraSpinner(self, *args): #camera dropdown
+                    # available_cams = list_ports()[1] #can't use this because camera is already used by open_camera
+                    available_cams = self.FCVAWidget_shared_metadata_dict["available_cam_list"] 
+                    # for x in available_cams: add the cam to the DD, then when you press a cam, it gets set in the shareddict, self.FCVAWidget_shared_metadata_dict, then when you press_up on the button, chosen_cam_int gets set in FCVAWidget_shared_metadata_dictVAR2
+                    spinner = self.ids["Camera_spinnerID"]
+                    spinner.values = [str(x) for x in available_cams] #spinner only accepts str
+                    fprint("updateCameraSpinner data?", available_cams, type(available_cams), spinner.values) #self.ids,
+                    # spinner.bind(on_release=self.cam_spinner_choice)
+                    
+                def cam_spinner_choice(self, *args):
+                    spinner = self.ids["Camera_spinnerID"]
+                    print("spinner chosen by FCVAWidgetInit on_touch_up!", self, *args, "spinner text:", spinner.text, spinner.text == '')
+                    #set the camera AS AN INT
+                    self.FCVAWidget_shared_metadata_dict["chosen_cam_int"] = int(spinner.text)
 
                 def updatevolumeSlider(self, *args):
                     self.ids['volsliderID'].value = 100
@@ -1381,6 +1401,9 @@ class FCVA:
                             webbrowser.open("https://www.patreon.com/pengindoramu", new=0, autoraise=True)
                         elif (self.ids['disc_buttonID'].collide_point(*touch.pos)):
                             webbrowser.open("https://discord.gg/4mxGAgZN4y", new=0, autoraise=True)
+                        elif (self.ids['Camera_spinnerID'].collide_point(*touch.pos)):
+                            # self.ids['Camera_spinnerID'].on_touch_down(touch)
+                            self.ids['Camera_spinnerID'].dispatch('on_touch_down', touch)
                         self.FCVAWidget_shared_metadata_dict["oldsliderpos"] = self.ids['vidsliderID'].value #this is just for a print apparently
                     else:
                         #popup warning
@@ -1442,6 +1465,13 @@ class FCVA:
                         elif (self.ids['volsliderID'].collide_point(*touch.pos)):
                             self.ids['volsliderID'].on_touch_up(touch)
                             fprint("startscreen volslider touchup")
+                        elif (self.ids['Camera_spinnerID'].collide_point(*touch.pos)):
+                            # self.ids['Camera_spinnerID'].on_touch_up(touch)
+                            spinner = self.ids['Camera_spinnerID']
+                            spinner.dispatch('on_touch_up', touch)
+                            if spinner.text != '':
+                                self.cam_spinner_choice()
+
                         self.vidslider_firsttouch = False
                     else:
                         #popup warning
@@ -2103,6 +2133,7 @@ class FCVA:
             FCVAWidget_KV = """
 #import dp kivy.metrics.dp
 <Lutton@Button+Label>:
+<CameraSpinner@Spinner>:
 
 <FCVAWidget>:
     orientation: 'vertical'
@@ -2117,14 +2148,15 @@ class FCVA:
         background_color: 1, 0, 0, 1
         Image: 
             id: disc_buttonID
-            size_hint: (.25, 1)
+            size_hint: (.2, 1)
         Image: 
             id: patr_buttonID
-            size_hint: (.25, 1)
+            size_hint: (.2, 1)
             # https://stackoverflow.com/questions/61256650/accessing-canvas-rectangle-in-kivy
             # https://stackoverflow.com/questions/58977427/how-to-set-id-of-rectangle-in-builder-python-kivy/58978715#58978715
-        # CameraDD:
-        #     id: Camera_DDID
+        CameraSpinner:
+            id: Camera_spinnerID
+            size_hint: (.2, 1)
         Label:
             size_hint: (.40, 1)
             id: score_labelID
