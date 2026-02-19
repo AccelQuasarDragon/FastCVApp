@@ -1138,7 +1138,6 @@ class FCVA:
                         if len(camlist) > 0:
                             self.FCVAWidget_shared_metadata_dict["chosen_cam_int"] = camlist[0]
 
-
                         initdatalist = FCVA.FCVAWidget_SubprocessInit(
                             FCVA_mp,
                             shared_mem_manager,
@@ -1220,12 +1219,14 @@ class FCVA:
                     spinner.values = [str(x) for x in available_cams] #spinner only accepts str
                     fprint("updateCameraSpinner data?", available_cams, type(available_cams), spinner.values) #self.ids,
                     # spinner.bind(on_release=self.cam_spinner_choice)
+                    spinner.bind(text = self.cam_spinner_choice) 
                     
                 def cam_spinner_choice(self, *args):
                     spinner = self.ids["Camera_spinnerID"]
-                    #set the camera AS AN INT
-                    self.FCVAWidget_shared_metadata_dict["chosen_cam_int"] = int(spinner.text)
-                    print("spinner chosen by FCVAWidgetInit on_touch_up!", self, *args, "spinner text:", spinner.text, spinner.text == '', self.FCVAWidget_shared_metadata_dict["chosen_cam_int"])
+                    if spinner.text != '':
+                        print("spinner chosen by FCVAWidgetInit on_touch_up!", self, *args, "spinner text:", spinner.text, spinner.text == '')
+                        #set the camera AS AN INT
+                        self.FCVAWidget_shared_metadata_dict["chosen_cam_int"] = int(spinner.text)
 
                 def updatevolumeSlider(self, *args):
                     self.ids['volsliderID'].value = 100
@@ -1469,9 +1470,7 @@ class FCVA:
                             # self.ids['Camera_spinnerID'].on_touch_up(touch)
                             spinner = self.ids['Camera_spinnerID']
                             spinner.dispatch('on_touch_up', touch)
-                            if spinner.text != '':
-                                self.cam_spinner_choice()
-
+                            
                         self.vidslider_firsttouch = False
                     else:
                         #popup warning
