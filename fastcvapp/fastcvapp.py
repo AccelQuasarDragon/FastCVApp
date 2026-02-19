@@ -1223,9 +1223,9 @@ class FCVA:
                     
                 def cam_spinner_choice(self, *args):
                     spinner = self.ids["Camera_spinnerID"]
-                    print("spinner chosen by FCVAWidgetInit on_touch_up!", self, *args, "spinner text:", spinner.text, spinner.text == '')
                     #set the camera AS AN INT
                     self.FCVAWidget_shared_metadata_dict["chosen_cam_int"] = int(spinner.text)
+                    print("spinner chosen by FCVAWidgetInit on_touch_up!", self, *args, "spinner text:", spinner.text, spinner.text == '', self.FCVAWidget_shared_metadata_dict["chosen_cam_int"])
 
                 def updatevolumeSlider(self, *args):
                     self.ids['volsliderID'].value = 100
