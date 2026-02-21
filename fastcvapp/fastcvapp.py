@@ -298,11 +298,16 @@ def open_cvpipeline(*args):
 
         #didn't know about apipreference: https://stackoverflow.com/questions/73753126/why-does-opencv-read-video-faster-than-ffmpeg
         #if source exists (that way you can just start the subprocess w/o requiring a source), if u change source you'll end up triggering the source change code in the while loop so ur good:
-        if "source" in FCVAWidget_shared_metadata_dictVAR2.keys():
-            currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
-            sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
-        else:
-            currentsource = None
+        try:
+            if "source" in FCVAWidget_shared_metadata_dictVAR2.keys():
+                currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
+                sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
+            else:
+                currentsource = None
+        except Exception as e: 
+                print("internal open_cvpipeline sourcecheck1 died!", e)
+                import traceback
+                print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
         internal_framecount = 0
         force_monotonic_increasing = 0 #mediapipe keeps complaining about " Input timestamp must be monotonically increasing."
         instance_count = 0
@@ -400,12 +405,17 @@ def open_cvpipeline(*args):
             #if source is different, close cap and reopen with new source: also remember this adds time to this already time critical function...
             
             #============== if source is different, chance to updated source ============================
-            if ("source" in FCVAWidget_shared_metadata_dictVAR2.keys() and 
-                currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]
-                ):
-                sourcecap.release()
-                sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
-                currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
+            try:
+                if ("source" in FCVAWidget_shared_metadata_dictVAR2.keys() and 
+                    currentsource != FCVAWidget_shared_metadata_dictVAR2["source"]
+                    ):
+                    sourcecap.release()
+                    sourcecap = cv2.VideoCapture(FCVAWidget_shared_metadata_dictVAR2["source"], apiPreference=cv2.CAP_FFMPEG)
+                    currentsource = FCVAWidget_shared_metadata_dictVAR2["source"]
+            except Exception as e: 
+                    print("internal open_cvpipeline sourcecheck2 died!", e)
+                    import traceback
+                    print("full exception", "".join(traceback.format_exception(*sys.exc_info())))
                 # fprint("done? switching?")
 
             #JUST PAUSE/PLAY RIGHT NOW:
@@ -1812,6 +1822,7 @@ class FCVA:
                                     # # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
 
                                     current_pose_debug = False
+                                    # current_pose_debug = True
                                     if current_pose_debug: 
                                         curr_shareddict_instance = int_to_partition(self.index,self.bufferlen,self.cvpartitions) 
                                         curr_shared_posedict_index = frameblock(0,curr_shareddict_instance,1,2)[0]
@@ -1826,7 +1837,7 @@ class FCVA:
                                     # # =-=-=-= LOOKING FOR CURRENT POSEDATA =-=-=-=
                                     # fprint("why is it always on actually???", test_time, self.FCVAWidget_shared_metadata_dict["show_future_pose_time"])
                                     if current_pose_debug:
-                                    # if True:
+                                    # if True: #need data without current pose
                                         font = cv2.FONT_HERSHEY_SIMPLEX
                                         fontScale = .5
                                         thickness = 2
