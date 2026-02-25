@@ -8,7 +8,7 @@ import numpy as np
 import webbrowser
 from sys import platform
 from pathlib import Path
-
+import imageio.v3 as iio
 try:
     if platform == "win32" and '__compiled__' in dir(sys.modules[__name__]): #module doesn't matter but u need to check the compiled attrib as set by nuitka
         # apparently I can just set this: 
@@ -1569,7 +1569,7 @@ class FCVA:
                         self.FCVAWidget_shared_metadata_dict["source"] = str(file_path, encoding='utf-8')
                         self.updateSliderData(self.FCVAWidget_shared_metadata_dict)
                         #have a popup saying it's loaded or not:
-                        self.textpopupinstance(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"])
+                        self.textpopupinstance(title= "Loading file...", text= "Attempting to load: " + self.FCVAWidget_shared_metadata_dict["source"], source = self.FCVAWidget_shared_metadata_dict["source"])
                         #reset cv and score
                         self.CV_off()
                         fprint("reset score filedrop")
@@ -1580,6 +1580,7 @@ class FCVA:
                             "total_score" in self.shared_camera_subprocess_dictVAR
                             ):
                             self.shared_camera_subprocess_dictVAR["total_score"] = 0
+                            # https://stackoverflow.com/questions/73566589/how-to-get-video-metadata-from-bytes-using-imageio-v3
                     else:
                         #popup warning
                         box = BoxLayout(orientation='vertical')
@@ -1591,7 +1592,7 @@ class FCVA:
                         popup.open()
 
                 # https://stackoverflow.com/questions/54501099/how-to-run-a-method-on-the-exit-of-a-kivy-app
-                def textpopupinstance(self, title='', text=''):
+                def textpopupinstance(self, title='', text='', source=''):
                     """Open the pop-up with the name.
 
                     :param title: title of the pop-up to open
@@ -1600,6 +1601,10 @@ class FCVA:
                     :type text: str
                     :rtype: None
                     """
+
+                    # get the video stats:
+                    video_stats = iio.improps(source)
+                    video_dimensions = f"{video_stats.shape[2]}, {video_stats.shape[1]}"
                     box = BoxLayout(orientation='vertical')
                     textlabel = Label(text=text, text_size= (None,None))
                     box.add_widget(textlabel)
@@ -1613,7 +1618,7 @@ class FCVA:
                     titlewidget2 = Label(text="frame resolution", text_size= (400, None))
                     box.add_widget(titlewidget2)
                     
-                    textinputwidget2 = TextInput(text='1920, 1080', multiline=False)
+                    textinputwidget2 = TextInput(text=video_dimensions, multiline=False) #'1920, 1080'
                     box.add_widget(textinputwidget2)
                     
                     popup = FCVAPopup(title=title, content=box, size_hint=(0.8, 0.8))
@@ -2158,12 +2163,17 @@ class FCVA:
         background_color: 1, 0, 0, 1
         Image: 
             id: disc_buttonID
-            size_hint: (.2, 1)
+            size_hint: (.13, 1)
         Image: 
             id: patr_buttonID
-            size_hint: (.2, 1)
+            size_hint: (.13, 1)
             # https://stackoverflow.com/questions/61256650/accessing-canvas-rectangle-in-kivy
             # https://stackoverflow.com/questions/58977427/how-to-set-id-of-rectangle-in-builder-python-kivy/58978715#58978715
+        Lutton:
+            size_hint: (.13, 1)
+            text: "How to Play | Youtube"
+            on_release: 
+                webbrowser.open("https://www.patreon.com/pengindoramu", new=0, autoraise=True)
         CameraSpinner:
             id: Camera_spinnerID
             size_hint: (.2, 1)
@@ -2223,7 +2233,6 @@ class FCVA:
             id: RepeatButtonID
             size_hint: (.25, 1)
             font_size: root.dpupdate(self.height, 0.7)
-
     BoxLayout:
         id: subBoxLayoutID1
         orientation: 'horizontal'
