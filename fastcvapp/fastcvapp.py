@@ -1562,6 +1562,11 @@ class FCVA:
                         return ""
 
                 def _on_file_drop(self, window, file_path, x, y):
+                    # import pkgutil
+                    # fprint("modules")
+                    # for module in pkgutil.iter_modules():
+                    #     print(module.name)
+                    # fprint("modules END")
                     if (
                         len(self.subprocess_list) == self.cvpartitions and 
                         len([keyVAR for keyVAR in self.FCVAWidget_shared_metadata_dict.keys() if "subprocess_cv_load" in keyVAR and self.FCVAWidget_shared_metadata_dict[keyVAR]]) == self.cvpartitions):
