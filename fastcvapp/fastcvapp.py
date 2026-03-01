@@ -2178,7 +2178,7 @@ class FCVA:
             size_hint: (.13, 1)
             text: "How to Play | Youtube"
             on_release: 
-                webbrowser.open("https://www.patreon.com/pengindoramu", new=0, autoraise=True)
+                webbrowser.open("https://youtu.be/FFoL0EoOpN8", new=0, autoraise=True)
         CameraSpinner:
             id: Camera_spinnerID
             size_hint: (.2, 1)
